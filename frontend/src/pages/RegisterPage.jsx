@@ -280,8 +280,7 @@ export default function RegisterPage() {
           <img 
             src="/saka.png" 
             alt="Logo" 
-            className="register-logo"
-            onError={(e) => (e.target.src = "https://via.placeholder.com/80")} 
+            className="register-logo" 
           />
           <h1 className="register-title">Buat Akun</h1>
           <p className="register-subtitle">Mulai petualangan belajarmu sekarang</p>

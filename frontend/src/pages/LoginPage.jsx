@@ -250,7 +250,6 @@ export default function LoginPage() {
             src="/saka.png" 
             alt="Logo" 
             className="login-logo"
-            onError={(e) => (e.target.src = "https://via.placeholder.com/80")} 
           />
           <h1 className="login-title">Selamat Datang</h1>
           <p className="login-subtitle">Silakan masuk ke akun belajar Anda</p>
