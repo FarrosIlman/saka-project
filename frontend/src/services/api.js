@@ -23,8 +23,41 @@ api.interceptors.request.use(
   }
 );
 
+// Handle responses and errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = error.response?.data?.message || error.message || 'Terjadi kesalahan. Silakan coba lagi.';
+    
+    // Handle 401 unauthorized
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    
+    // Handle 403 forbidden
+    if (error.response?.status === 403) {
+      console.error('Access denied:', message);
+    }
+    
+    // Handle 500 server error
+    if (error.response?.status >= 500) {
+      console.error('Server error:', message);
+    }
+    
+    return Promise.reject({
+      status: error.response?.status,
+      message: message,
+      data: error.response?.data,
+      originalError: error,
+    });
+  }
+);
+
 // Auth API
 export const authAPI = {
+  register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
 };
 
@@ -35,7 +68,9 @@ export const adminAPI = {
   createUser: (userData) => api.post('/admin/users', userData),
   updateUser: (userId, userData) => api.put(`/admin/users/${userId}`, userData),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
-  getUserProgress: (userId) => api.get(`/admin/progress/${userId}`),
+  getUserProgress: (userId) => {
+    return api.get(`/admin/progress/${userId}`);
+  },
 };
 
 // Level API
@@ -56,6 +91,16 @@ export const levelAPI = {
 export const progressAPI = {
   getProgress: () => api.get('/progress'),
   completeLevel: (data) => api.post('/progress/complete-level', data),
+  getLeaderboard: (limit = 10) => api.get('/leaderboard', { params: { limit } }),
+  getAchievements: (userId) => api.get(`/achievements/${userId}`),
+};
+
+// User API
+export const userAPI = {
+  getProfile: () => api.get('/user/profile'),
+  updatePassword: (data) => api.post('/user/update-password', data),
+  updateProfile: (data) => api.put('/user/profile', data),
+  updatePreferences: (data) => api.put('/user/preferences', data),
 };
 
 export default api;

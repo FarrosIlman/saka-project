@@ -1,0 +1,283 @@
+.comment-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.comment-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.author-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.author-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.comment-date {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.delete-btn {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background: #fff5f5;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.comment-body {
+  margin-bottom: 12px;
+}
+
+.comment-text {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.comment-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-rating svg {
+  color: #ddd;
+  transition: color 0.2s ease;
+}
+
+.comment-rating svg.filled {
+  color: #ffc107;
+}
+
+.rating-number {
+  font-size: 12px;
+  color: #999;
+  margin-left: 4px;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover:not(:disabled) {
+  color: #0ea5e9;
+}
+
+.action-btn.active {
+  color: #0ea5e9;
+  font-weight: 500;
+}
+
+.action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.replies-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.reply-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.reply-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.author-avatar-small {
+  width: 28px;
+  height: 28px;
+  background: #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.reply-author-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.reply-date {
+  margin: 0;
+  font-size: 11px;
+  color: #999;
+  margin-left: auto;
+}
+
+.reply-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.reply-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.reply-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.reply-textarea:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  background: white;
+}
+
+.reply-textarea:disabled {
+  background: #e8e8e8;
+  color: #999;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reply-submit,
+.reply-cancel {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reply-submit {
+  background: #0ea5e9;
+  color: white;
+}
+
+.reply-submit:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.reply-submit:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.reply-cancel {
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.reply-cancel:hover {
+  background: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .comment-card {
+    padding: 12px;
+  }
+
+  .comment-header {
+    gap: 8px;
+  }
+
+  .author-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .comment-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

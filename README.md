@@ -24,9 +24,7 @@ A comprehensive, production-ready English learning platform that combines voice 
 
 ## Clone this Project
 
-Want to create your own version of this project with all the content and structure? Clone this Cosmic bucket and code repository to get started instantly:
-
-[![Clone this Project](https://img.shields.io/badge/Clone%20this%20Project-29abe2?style=for-the-badge&logo=cosmic&logoColor=white)](https://app.cosmicjs.com/projects/new?clone_bucket=68ec51ed3393cb29a9184f65&clone_repository=68ec53f03393cb29a9184f6b)
+Want to create your own version of this project with all the content and structure? Clone this code repository to get started instantly
 
 ## 💬 Prompts
 

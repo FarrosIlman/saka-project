@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children, adminOnly = false }) {
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
@@ -18,8 +18,17 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !isAdmin()) {
-    return <Navigate to="/levels" replace />;
+  // Check if user's role is in allowed roles
+  if (allowedRoles.length > 0) {
+    const userRole = user.role;
+    if (!allowedRoles.includes(userRole)) {
+      // Redirect based on user's actual role
+      if (userRole === 'admin') {
+        return <Navigate to="/admin/dashboard" replace />;
+      } else {
+        return <Navigate to="/levels" replace />;
+      }
+    }
   }
 
   return children;

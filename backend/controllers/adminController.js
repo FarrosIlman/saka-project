@@ -238,29 +238,82 @@ const updateUser = async (req, res) => {
   }
 };
 
-// @desc    Delete user
+// @desc    Delete user with cascade delete
 // @route   DELETE /api/admin/users/:userId
 // @access  Admin
 const deleteUser = async (req, res) => {
+  const session = await User.startSession();
+  session.startTransaction();
+
   try {
     const { userId } = req.params;
 
-    const user = await User.findById(userId);
+    // Validate userId format
+    if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    // Find user first
+    const user = await User.findById(userId).session(session);
 
     if (!user) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete associated progress
-    await Progress.deleteOne({ user: userId });
+    // Prevent deletion of admin users
+    if (user.role === 'admin') {
+      await session.abortTransaction();
+      return res.status(403).json({ message: 'Cannot delete admin users' });
+    }
+
+    const username = user.username; // Store username for response
+    const role = user.role;
+
+    // Delete associated progress (cascade delete)
+    const progressResult = await Progress.deleteOne({ user: userId }).session(session);
 
     // Delete user
-    await User.deleteOne({ _id: userId });
+    const userResult = await User.deleteOne({ _id: userId }).session(session);
 
-    res.json({ message: 'User deleted successfully' });
+    if (userResult.deletedCount === 0) {
+      throw new Error('Failed to delete user');
+    }
+
+    await session.commitTransaction();
+
+    // Log deletion for audit trail
+    console.log(`[AUDIT] User deleted - ID: ${userId}, Username: ${username}, Role: ${role}, Timestamp: ${new Date().toISOString()}`);
+
+    res.json({
+      message: 'User deleted successfully',
+      deletedUser: {
+        _id: userId,
+        username: username,
+        role: role
+      },
+      cascadeDeleted: {
+        progressRecords: progressResult.deletedCount
+      }
+    });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Delete user error:', error);
-    res.status(500).json({ message: 'Error deleting user' });
+    
+    let errorMessage = 'Error deleting user';
+    let statusCode = 500;
+
+    if (error.message === 'Failed to delete user') {
+      errorMessage = 'User deletion failed. Please try again.';
+      statusCode = 500;
+    } else if (error.kind === 'ObjectId') {
+      errorMessage = 'Invalid user ID format';
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json({ message: errorMessage });
+  } finally {
+    session.endSession();
   }
 };
 

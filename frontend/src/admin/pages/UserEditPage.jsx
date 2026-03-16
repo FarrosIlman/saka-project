@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 export default function UserEditPage() {
+  const showToast = useToast() || { success: () => {}, error: () => {} };
   const { userId } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(userId);
@@ -46,12 +48,16 @@ export default function UserEditPage() {
     try {
       if (isEditMode) {
         await adminAPI.updateUser(userId, formData);
+        showToast.success(`User "${formData.username}" updated successfully`);
       } else {
         await adminAPI.createUser(formData);
+        showToast.success(`User "${formData.username}" created successfully`);
       }
       navigate('/admin/users');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save user');
+      const errorMessage = err.response?.data?.message || 'Failed to save user';
+      setError(errorMessage);
+      showToast.error(errorMessage);
     }
   };
 

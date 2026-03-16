@@ -1,0 +1,243 @@
+/* Mobile-First Responsive Breakpoints & Touch-Friendly Utilities */
+
+:root {
+  --bp-xs: 320px;   /* Extra small phones */
+  --bp-sm: 480px;   /* Small phones */
+  --bp-md: 768px;   /* Tablets */
+  --bp-lg: 1024px;  /* Desktops */
+  --bp-xl: 1440px;  /* Large desktops */
+
+  /* Touch-friendly dimensions */
+  --touch-target-min: 48px;
+  --button-padding-mobile: 12px 16px;
+  --button-padding-desktop: 10px 24px;
+}
+
+/* Mobile-first base styles */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch-friendly buttons */
+button, a[role="button"] {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--button-padding-mobile);
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+/* Mobile menu improvements */
+@media (max-width: 479px) {
+  /* Extra small screens */
+  body {
+    font-size: 14px;
+  }
+
+  h1 { font-size: 20px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 16px; }
+
+  /* Navigation */
+  nav {
+    padding: 0 16px;
+  }
+
+  /* Forms */
+  input, textarea, select {
+    font-size: 16px;
+  }
+
+  /* Cards */
+  .card {
+    padding: 12px;
+    margin: 8px;
+  }
+
+  /* Modals */
+  .modal {
+    width: 90vw;
+    max-width: 320px;
+  }
+
+  /* Grid adjustments */
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Buttons */
+  button {
+    width: 100%;
+  }
+}
+
+/* Small phones (480px) */
+@media (min-width: 480px) and (max-width: 639px) {
+  h1 { font-size: 22px; }
+  h2 { font-size: 20px; }
+  
+  button {
+    padding: var(--button-padding-mobile);
+  }
+
+  .container {
+    padding: 0 12px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+/* Tablets (640px - 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  h1 { font-size: 24px; }
+  h2 { font-size: 22px; }
+
+  button {
+    padding: var(--button-padding-desktop);
+  }
+
+  .container {
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Landscape tablet adjustments */
+  @media (orientation: landscape) {
+    .top-nav {
+      height: 60px;
+    }
+
+    main {
+      margin-top: 60px;
+    }
+  }
+}
+
+/* Desktops (1024px+) */
+@media (min-width: 1024px) {
+  button {
+    padding: var(--button-padding-desktop);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Extra large (1440px+) */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase target size on touch */
+  button, a[role="button"], input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects, use active instead */
+  button:hover {
+    background: none;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  /* Improve tap feedback */
+  a {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* For landscape phones with limited vertical space */
+  .top-nav {
+    height: 50px;
+    padding: 0 12px;
+  }
+
+  button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  main {
+    margin-top: 50px;
+  }
+}
+
+/* Print styles (bonus) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+
+  button, nav {
+    display: none;
+  }
+}
+
+/* High DPI screens (Retina) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Slightly thinner borders for crisper appearance */
+  border-width: 0.5px;
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode support - disabled, app uses its own light theme */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+*/
+
+/* Safe area insets for notched devices */
+@supports (padding: clamp(1px, 1vmax, 1px)) {
+  .top-nav {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}

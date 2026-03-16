@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { levelAPI } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default function LevelEditPage() {
+  const showToast = useToast() || { success: () => {}, error: () => {} };
   const { levelId } = useParams();
   const navigate = useNavigate();
 
@@ -36,10 +38,10 @@ export default function LevelEditPage() {
     e.preventDefault();
     try {
       await levelAPI.updateLevel(levelId, level);
-      alert('Level updated successfully');
+      showToast.success(`Level "${level.title}" updated successfully`);
     } catch (err) {
       console.error('Failed to update level:', err);
-      alert('Failed to update level');
+      showToast.error('Failed to update level');
     }
   };
 
@@ -47,11 +49,12 @@ export default function LevelEditPage() {
     e.preventDefault();
     try {
       await levelAPI.createQuestion(levelId, editingQuestion);
+      showToast.success('Question created successfully');
       setEditingQuestion(null);
       fetchLevel();
     } catch (err) {
       console.error('Failed to create question:', err);
-      alert('Failed to create question');
+      showToast.error('Failed to create question');
     }
   };
 
@@ -59,11 +62,12 @@ export default function LevelEditPage() {
     e.preventDefault();
     try {
       await levelAPI.updateQuestion(editingQuestion._id, editingQuestion);
+      showToast.success('Question updated successfully');
       setEditingQuestion(null);
       fetchLevel();
     } catch (err) {
       console.error('Failed to update question:', err);
-      alert('Failed to update question');
+      showToast.error('Failed to update question');
     }
   };
 
@@ -74,10 +78,12 @@ export default function LevelEditPage() {
   const confirmDeleteQuestion = async () => {
     try {
       await levelAPI.deleteQuestion(deleteModal.question._id);
+      showToast.success('Question deleted successfully');
       setDeleteModal({ isOpen: false, question: null });
       fetchLevel();
     } catch (err) {
       console.error('Failed to delete question:', err);
+      showToast.error('Failed to delete question');
       alert('Failed to delete question');
     }
   };
@@ -161,7 +167,7 @@ export default function LevelEditPage() {
             onClick={() => setEditingQuestion({
               questionText: '',
               imageUrl: '',
-              options: ['', '', '', ''],
+              options: ['', '', ''],
               correctAnswer: '',
             })}
             className="btn btn-primary"
@@ -246,7 +252,7 @@ export default function LevelEditPage() {
                 </div>
 
                 <div className="input-group">
-                  <label>Options (3-4 options)</label>
+                  <label>Options (3 options)</label>
                   {editingQuestion.options.map((option, index) => (
                     <input
                       key={index}

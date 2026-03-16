@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const http = require('http');
 const connectDB = require('./config/db');
+const RealtimeManager = require('./services/realtimeManager');
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +12,10 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const httpServer = http.createServer(app);
+
+// Initialize Realtime Manager with HTTP server for Socket.io
+const realtimeManager = new RealtimeManager(httpServer);
 
 // Middleware
 app.use(cors());
@@ -21,6 +27,15 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/levels', require('./routes/levelRoutes'));
 app.use('/api/progress', require('./routes/progressRoutes'));
+app.use('/api/user', require('./routes/userRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/gamification', require('./routes/gamificationRoutes'));
+app.use('/api/comments', require('./routes/commentRoutes'));
+app.use('/api/export', require('./routes/exportRoutes'));
+app.use('/api/reporting', require('./routes/reportingRoutes'));
+app.use('/api', require('./routes/leaderboardRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -38,8 +53,9 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📚 API: http://localhost:${PORT}/api`);
+  console.log(`🔌 WebSocket ready for real-time features`);
+  console.log(` API: http://localhost:${PORT}/api`);
   console.log(`💚 Health: http://localhost:${PORT}/api/health`);
 });

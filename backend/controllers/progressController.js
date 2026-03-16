@@ -1,5 +1,6 @@
 const Progress = require('../models/Progress');
 const Level = require('../models/Level');
+const { checkAndUnlockAchievementsUtil } = require('./leaderboardController');
 
 // @desc    Get user's progress
 // @route   GET /api/progress
@@ -77,9 +78,19 @@ const completeLevel = async (req, res) => {
 
     await progress.save();
 
+    // Check and unlock achievements
+    let unlockedAchievements = [];
+    try {
+      unlockedAchievements = await checkAndUnlockAchievementsUtil(req.user._id);
+    } catch (achievementError) {
+      console.error('Error checking achievements:', achievementError);
+      // Don't fail the request if achievement check fails
+    }
+
     res.json({
       message: 'Level completed successfully',
       progress,
+      unlockedAchievements,
     });
   } catch (error) {
     console.error('Complete level error:', error);

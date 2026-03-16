@@ -1,5 +1,5 @@
 {
-  "name": "english-quiz-backend",
+  "name": "SAKA - Smart Application for Kids Speaking Activity",
   "version": "1.0.0",
   "description": "Backend API for Professional English Learning Platform",
   "main": "index.js",
@@ -8,16 +8,30 @@
     "dev": "nodemon index.js",
     "seed": "node seeder.js"
   },
-  "keywords": ["english", "quiz", "learning", "education", "voice"],
+  "keywords": [
+    "english",
+    "quiz",
+    "learning",
+    "education",
+    "voice",
+    "kids",
+    "speaking",
+    "app",
+    "saka"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "mongoose": "^8.0.3",
     "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
-    "dotenv": "^16.3.1"
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.1",
+    "pdfkit": "^0.17.2",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

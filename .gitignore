@@ -7,6 +7,14 @@
 
 # testing
 /coverage
+*.test.js
+*.spec.js
+/test
+/tests
+/test-results
+/test-reports
+test-all.sh
+test-*.sh
 
 # next.js
 /.next/
@@ -26,6 +34,9 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.production.local
+.env.development.local
 
 # vercel
 .vercel
@@ -33,3 +44,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Build artifacts
+/dist
+/build
+frontend/dist
+
+# Logs
+*.log
+logs/
