@@ -278,7 +278,7 @@ export default function RegisterPage() {
             <span>SAKA Platform</span>
           </div>
           <img 
-            src="/assets/images/saka.png" 
+            src="/saka.png" 
             alt="Logo" 
             className="register-logo"
             onError={(e) => (e.target.src = "https://via.placeholder.com/80")} 
