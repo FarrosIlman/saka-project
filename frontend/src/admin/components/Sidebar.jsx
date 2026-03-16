@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import SakaLogo from "../../assets/images/saka.png";
 import Swal from "sweetalert2"; // Import SweetAlert2 untuk dialog konfirmasi
 import {
   LayoutDashboard,
@@ -193,7 +194,7 @@ export default function Sidebar({ isOpen, closeSidebar }) {
         >
           {/* Logo Tanpa Kotak & Lebih Besar */}
           <img
-            src="/assets/images/saka.png"
+            src={SakaLogo}
             alt="SAKA"
             style={{
               width: "55px",

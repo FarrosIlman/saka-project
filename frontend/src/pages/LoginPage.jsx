@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import SakaLogo from '../assets/images/saka.png';
 import { Eye, EyeOff, Lock, User, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
@@ -247,7 +248,7 @@ export default function LoginPage() {
             <span>SAKA Platform</span>
           </div>
           <img 
-            src="/saka.png" 
+            src={SakaLogo}
             alt="Logo" 
             className="login-logo"
           />
