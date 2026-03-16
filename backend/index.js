@@ -51,11 +51,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 7000;
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔌 WebSocket ready for real-time features`);
-  console.log(` API: http://localhost:${PORT}/api`);
-  console.log(`💚 Health: http://localhost:${PORT}/api/health`);
+  // Log di bawah ini opsional, tapi membantu saat debugging di Render
+  console.log(`💚 Health Check: /api/health`);
 });
+
+module.exports = app;

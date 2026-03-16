@@ -84,6 +84,24 @@ export default function LevelSelectionPage() {
       border-bottom: 1px solid #e2e8f0;
     }
 
+    @media (max-width: 768px) {
+      .top-nav {
+        height: 70px;
+        padding: 0 16px;
+        flex-wrap: wrap;
+      }
+      .nav-brand span { font-size: 16px; }
+      .nav-brand img { width: 36px; }
+      .nav-right { gap: 12px; }
+      .user-pill { padding: 6px 14px 6px 6px; font-size: 14px; }
+    }
+
+    @media (max-width: 480px) {
+      .top-nav { padding: 0 12px; }
+      .nav-brand span { display: none; }
+      .nav-right { gap: 8px; }
+    }
+
     .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
     .nav-brand img { width: 42px; }
     .nav-brand span { font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.03em; }

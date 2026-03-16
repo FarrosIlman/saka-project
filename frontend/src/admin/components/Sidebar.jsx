@@ -151,13 +151,23 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     @media (max-width: 768px) {
       .sidebar {
         position: fixed !important;
-        left: -280px;
-        z-index: 1000;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.05);
+        left: -100vw;
+        top: 0 !important;
+        width: 280px;
+        height: 100vh;
+        z-index: 999;
+        box-shadow: 2px 0 30px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        transition: left 0.3s ease;
       }
       .sidebar.mobile-visible {
         left: 0 !important;
       }
+      .sidebar { width: 100vw; }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar { width: calc(100vw - 60px); }
     }
   `;
 
