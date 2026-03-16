@@ -209,7 +209,7 @@ export default function LevelSelectionPage() {
       {/* NAVBAR */}
       <nav className="top-nav">
         <div className="nav-brand" onClick={() => navigate('/')}>
-          <img src="/assets/images/saka.png" alt="SAKA" />
+          <img src="/saka.png" alt="SAKA" />
           <span>SAKA PATH</span>
         </div>
         
