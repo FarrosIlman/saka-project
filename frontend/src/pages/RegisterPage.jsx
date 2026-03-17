@@ -5,11 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { Eye, EyeOff, Lock, User, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const [formData, setFormData] = useState({ username: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -25,35 +21,29 @@ export default function RegisterPage() {
   }, [user, navigate, isAdmin]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     if (formData.password !== formData.confirmPassword) {
       showError('Password tidak cocok');
       setLoading(false);
       return;
     }
-
     if (formData.password.length < 6) {
       showError('Password minimal 6 karakter');
       setLoading(false);
       return;
     }
-
     try {
       const result = await register(formData);
       if (!result.success) {
         showError(result.message);
         setLoading(false);
       } else {
-        showSuccess('Pendaftaran berhasil! Mengalihkan...');
+        showSuccess('Pendaftaran berhasil!');
       }
     } catch (err) {
       showError("Terjadi kesalahan pendaftaran.");
@@ -107,7 +97,7 @@ export default function RegisterPage() {
       z-index: 10;
     }
 
-    .register-header { text-align: center; margin-bottom: 28px; }
+    .register-header { text-align: center; margin-bottom: 24px; }
 
     .hero-badge {
       display: inline-flex;
@@ -120,10 +110,10 @@ export default function RegisterPage() {
       font-size: 13px;
       font-weight: 700;
       color: #0369a1;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
-    .register-logo { width: 64px; height: auto; margin-bottom: 16px; }
+    .register-logo { width: 64px; height: auto; margin-bottom: 12px; }
 
     .register-title {
       font-size: 28px;
@@ -135,14 +125,14 @@ export default function RegisterPage() {
 
     .register-subtitle { color: #64748b; font-size: 15px; }
 
-    .register-form { display: flex; flex-direction: column; gap: 18px; }
+    .register-form { display: flex; flex-direction: column; gap: 16px; }
     
     .label-text {
       display: block;
       font-size: 14px;
       font-weight: 700;
       color: #475569;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       margin-left: 4px;
     }
 
@@ -150,6 +140,7 @@ export default function RegisterPage() {
       position: relative; 
       display: flex;
       align-items: center;
+      width: 100%;
     }
 
     .input-icon {
@@ -172,18 +163,17 @@ export default function RegisterPage() {
       line-height: 1.5;
     }
 
-    .register-input:focus {
-      outline: none;
-      border-color: #0ea5e9;
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
-    }
-
+    /* FIX EYE BUTTON */
     .password-toggle {
       position: absolute;
-      right: 8px;
-      background: none;
-      border: none;
-      padding: 8px;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent !important;
+      border: none !important;
+      width: 42px; /* Lebar fix */
+      height: 42px; /* Tinggi fix */
+      padding: 0 !important;
       cursor: pointer;
       color: #94a3b8;
       border-radius: 10px;
@@ -195,8 +185,8 @@ export default function RegisterPage() {
     }
 
     .password-toggle:hover {
+      background: #f1f5f9 !important;
       color: #64748b;
-      background: #f1f5f9;
     }
 
     .btn-register {
@@ -217,12 +207,6 @@ export default function RegisterPage() {
       gap: 12px;
     }
 
-    .btn-register:hover:not(:disabled) {
-      background: #1e293b;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
-    }
-
     .register-footer {
       margin-top: 24px;
       text-align: center;
@@ -230,15 +214,10 @@ export default function RegisterPage() {
       color: #64748b;
     }
 
-    .register-footer a {
-      color: #0ea5e9;
-      text-decoration: none;
-      font-weight: 800;
-      margin-left: 4px;
-    }
+    .register-footer a { color: #0ea5e9; text-decoration: none; font-weight: 800; }
 
     .register-tip {
-      margin-top: 24px;
+      margin-top: 20px;
       padding: 14px;
       background: rgba(14, 165, 233, 0.05);
       border-radius: 16px;
@@ -249,143 +228,57 @@ export default function RegisterPage() {
     }
 
     @media (max-width: 480px) {
-      .register-container { 
-        padding: 32px 20px;
-        margin: 0 10px;
-      }
-
-      .register-title { font-size: 24px; }
-
-      .register-input {
-        padding: 14px 44px;
-        font-size: 16px; /* Penting untuk mencegah zoom-in Safari */
-      }
-
-      .input-icon { left: 14px; }
-
-      .password-toggle { 
-        right: 6px; 
-        padding: 8px;
-      }
-
-      .password-toggle svg {
-        width: 18px;
-        height: 18px;
-      }
+      .register-container { padding: 32px 20px; margin: 0 10px; }
+      .register-input { padding: 14px 44px; font-size: 16px; }
+      .password-toggle { right: 4px; width: 38px; height: 38px; }
     }
   `;
 
   return (
     <div className="register-page">
       <style>{styles}</style>
-      
-      <div className="bg-decoration">
-        <div className="orb orb-1"></div>
-        <div className="orb orb-2"></div>
-      </div>
-
+      <div className="bg-decoration"><div className="orb orb-1"></div><div className="orb orb-2"></div></div>
       <div className="register-container">
         <header className="register-header">
-          <div className="hero-badge">
-            <Sparkles size={14} />
-            <span>SAKA Platform</span>
-          </div>
-          <img 
-            src="/saka.png"
-            alt="Logo" 
-            className="register-logo" 
-          />
+          <div className="hero-badge"><Sparkles size={14} /><span>SAKA Platform</span></div>
+          <img src="/saka.png" alt="Logo" className="register-logo" />
           <h1 className="register-title">Buat Akun</h1>
           <p className="register-subtitle">Mulai petualangan belajarmu sekarang</p>
         </header>
-
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">
             <label className="label-text">Username</label>
             <div className="input-wrapper">
               <User size={18} className="input-icon" />
-              <input
-                className="register-input"
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Min. 3 karakter"
-                required
-                disabled={loading}
-              />
+              <input className="register-input" type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Min. 3 karakter" required disabled={loading} />
             </div>
           </div>
-
           <div className="form-group">
             <label className="label-text">Password</label>
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
-              <input
-                className="register-input"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Min. 6 karakter"
-                required
-                disabled={loading}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex="-1"
-              >
+              <input className="register-input" type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="Min. 6 karakter" required disabled={loading} />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} tabIndex="-1">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
-
           <div className="form-group">
             <label className="label-text">Konfirmasi Password</label>
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
-              <input
-                className="register-input"
-                type={showConfirm ? 'text' : 'password'}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Ulangi password"
-                required
-                disabled={loading}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowConfirm(!showConfirm)}
-                tabIndex="-1"
-              >
+              <input className="register-input" type={showConfirm ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Ulangi password" required disabled={loading} />
+              <button type="button" className="password-toggle" onClick={() => setShowConfirm(!showConfirm)} tabIndex="-1">
                 {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
-
           <button type="submit" className="btn-register" disabled={loading}>
-            {loading ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <>
-                <span>Daftar Sekarang</span>
-                <ArrowRight size={18} />
-              </>
-            )}
+            {loading ? <Loader2 size={20} className="animate-spin" /> : <><span>Daftar Sekarang</span><ArrowRight size={18} /></>}
           </button>
         </form>
-
-        <footer className="register-footer">
-          Sudah punya akun? <Link to="/login">Masuk di sini</Link>
-        </footer>
-
-        <div className="register-tip">
-          <p>💡 <strong>Tips:</strong> Gunakan username unik agar pendaftaran lancar.</p>
-        </div>
+        <footer className="register-footer">Sudah punya akun? <Link to="/login">Masuk di sini</Link></footer>
+        <div className="register-tip"><p>💡 <strong>Tips:</strong> Gunakan username unik agar pendaftaran lancar.</p></div>
       </div>
     </div>
   );

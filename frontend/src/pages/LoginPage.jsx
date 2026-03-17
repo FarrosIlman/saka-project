@@ -47,7 +47,6 @@ export default function LoginPage() {
       overflow: hidden;
     }
 
-    /* Background Orbs */
     .bg-decoration {
       position: absolute;
       inset: 0;
@@ -71,7 +70,6 @@ export default function LoginPage() {
       to { transform: translate(60px, 60px) rotate(10deg); }
     }
 
-    /* Main Container */
     .login-container {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
@@ -101,11 +99,7 @@ export default function LoginPage() {
       margin-bottom: 20px;
     }
 
-    .login-logo { 
-      width: 64px; 
-      height: auto; 
-      margin-bottom: 16px;
-    }
+    .login-logo { width: 64px; height: auto; margin-bottom: 16px; }
 
     .login-title {
       font-size: 28px;
@@ -115,10 +109,7 @@ export default function LoginPage() {
       margin-bottom: 4px;
     }
 
-    .login-subtitle {
-      color: #64748b;
-      font-size: 15px;
-    }
+    .login-subtitle { color: #64748b; font-size: 15px; }
 
     .form-group { margin-bottom: 20px; }
     
@@ -135,6 +126,7 @@ export default function LoginPage() {
       position: relative;
       display: flex;
       align-items: center;
+      width: 100%;
     }
 
     .input-icon {
@@ -163,12 +155,17 @@ export default function LoginPage() {
       box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
     }
 
+    /* FIX EYE BUTTON */
     .password-toggle {
       position: absolute;
-      right: 8px;
-      background: none;
-      border: none;
-      padding: 8px;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent !important;
+      border: none !important;
+      width: 42px; /* Lebar fix */
+      height: 42px; /* Tinggi fix */
+      padding: 0 !important;
       cursor: pointer;
       color: #94a3b8;
       border-radius: 10px;
@@ -180,8 +177,8 @@ export default function LoginPage() {
     }
 
     .password-toggle:hover {
+      background: #f1f5f9 !important;
       color: #64748b;
-      background: #f1f5f9;
     }
 
     .btn-login {
@@ -202,12 +199,6 @@ export default function LoginPage() {
       gap: 12px;
     }
 
-    .btn-login:hover:not(:disabled) {
-      background: #1e293b;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
-    }
-
     .login-footer {
       margin-top: 32px;
       text-align: center;
@@ -215,121 +206,50 @@ export default function LoginPage() {
       color: #64748b;
     }
 
-    .login-footer a {
-      color: #0ea5e9;
-      text-decoration: none;
-      font-weight: 800;
-      margin-left: 4px;
-    }
+    .login-footer a { color: #0ea5e9; text-decoration: none; font-weight: 800; }
 
-    /* RESPONSIVE FIX */
     @media (max-width: 480px) {
-      .login-container { 
-        padding: 32px 20px; 
-        margin: 0 10px;
-      }
-
-      .login-title { font-size: 24px; }
-
-      .login-input {
-        padding: 14px 44px; /* Padding sedikit lebih rapat di mobile */
-        font-size: 16px; /* Cegah auto-zoom iOS */
-      }
-
+      .login-container { padding: 32px 20px; margin: 0 10px; }
+      .login-input { padding: 14px 44px; font-size: 16px; }
       .input-icon { left: 14px; }
-      
-      .password-toggle { 
-        right: 6px;
-        padding: 8px; 
-      }
-
-      .password-toggle svg {
-        width: 18px;
-        height: 18px;
-      }
+      .password-toggle { right: 4px; width: 38px; height: 38px; }
     }
   `;
 
   return (
     <div className="login-page">
       <style>{styles}</style>
-      
-      <div className="bg-decoration">
-        <div className="orb orb-1"></div>
-        <div className="orb orb-2"></div>
-      </div>
-
+      <div className="bg-decoration"><div className="orb orb-1"></div><div className="orb orb-2"></div></div>
       <div className="login-container">
         <header className="login-header">
-          <div className="hero-badge">
-            <Sparkles size={14} />
-            <span>SAKA Platform</span>
-          </div>
-          <img 
-            src="/saka.png"
-            alt="Logo" 
-            className="login-logo"
-          />
+          <div className="hero-badge"><Sparkles size={14} /><span>SAKA Platform</span></div>
+          <img src="/saka.png" alt="Logo" className="login-logo" />
           <h1 className="login-title">Selamat Datang</h1>
           <p className="login-subtitle">Silakan masuk ke akun belajar Anda</p>
         </header>
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="label-text">Username</label>
             <div className="input-wrapper">
               <User size={18} className="input-icon" />
-              <input
-                className="login-input"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username anda"
-                required
-                disabled={loading}
-              />
+              <input className="login-input" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username anda" required disabled={loading} />
             </div>
           </div>
-
           <div className="form-group">
             <label className="label-text">Password</label>
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
-              <input
-                className="login-input"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loading}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex="-1"
-              >
+              <input className="login-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required disabled={loading} />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} tabIndex="-1">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
-
           <button type="submit" className="btn-login" disabled={loading}>
-            {loading ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <>
-                <span>Masuk Sekarang</span>
-                <ArrowRight size={18} />
-              </>
-            )}
+            {loading ? <Loader2 size={20} className="animate-spin" /> : <><span>Masuk Sekarang</span><ArrowRight size={18} /></>}
           </button>
         </form>
-
-        <footer className="login-footer">
-          Belum punya akun? <Link to="/register">Daftar sekarang</Link>
-        </footer>
+        <footer className="login-footer">Belum punya akun? <Link to="/register">Daftar sekarang</Link></footer>
       </div>
     </div>
   );
