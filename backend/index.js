@@ -66,7 +66,11 @@ const authLimiter = rateLimit({
   message: 'Terlalu banyak percobaan login/register. Coba lagi dalam 15 menit.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'development', // Skip di development
+  skip: (req) => {
+    // Skip preflight OPTIONS requests dan development mode
+    if (req.method === 'OPTIONS') return true;
+    return process.env.NODE_ENV === 'development';
+  }
 });
 
 // General rate limiter untuk endpoint lain
@@ -76,7 +80,11 @@ const apiLimiter = rateLimit({
   message: 'Terlalu banyak request. Coba lagi nanti.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'development', // Skip di development
+  skip: (req) => {
+    // Skip preflight OPTIONS requests dan development mode
+    if (req.method === 'OPTIONS') return true;
+    return process.env.NODE_ENV === 'development';
+  }
 });
 
 // --- ROUTES ---
