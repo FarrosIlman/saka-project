@@ -39,8 +39,6 @@ const seedData = async () => {
       role: 'admin',
     });
 
-    console.log('👤 Created admin user (username: admin, password: admin123)');
-
     // Create sample student users
     const student1 = await User.create({
       username: 'student1',
@@ -290,10 +288,6 @@ const seedData = async () => {
     }
 
     console.log('\n✅ Database seeded successfully!');
-    console.log('\n📌 Login Credentials:');
-    console.log('   Admin: username = admin, password = admin123');
-    console.log('   Student: username = student1, password = student123');
-    console.log('   Student: username = student2, password = student123\n');
 
     process.exit(0);
   } catch (error) {
