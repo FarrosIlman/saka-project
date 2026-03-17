@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import Swal from "sweetalert2"; // Import SweetAlert2 untuk dialog konfirmasi
+import { useToast } from "../../context/ToastContext";
 import {
   LayoutDashboard,
   Users,
@@ -14,39 +14,16 @@ import {
 
 export default function Sidebar({ isOpen, closeSidebar }) {
   const { logout } = useAuth();
+  const { success } = useToast();
 
   const handleLinkClick = () => {
     if (window.innerWidth <= 768) closeSidebar();
   };
 
-  // --- FUNGSI KONFIRMASI LOGOUT ADMIN ---
+  // --- FUNGSI LOGOUT ADMIN SIMPLE ---
   const handleAdminLogout = () => {
-    Swal.fire({
-      title: "Keluar dari Panel Admin?",
-      text: "Sesi manajemen sistem Anda akan diakhiri.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#0f172a", // Warna Slate-900 menyesuaikan tema admin
-      cancelButtonColor: "#64748b",
-      confirmButtonText: "Ya, Logout",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-      borderRadius: "24px",
-      customClass: {
-        popup: "swal-rounded",
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        logout();
-        Swal.fire({
-          title: "Logged Out",
-          text: "Sesi admin berhasil diakhiri.",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      }
-    });
+    logout();
+    success('Berhasil keluar dari Panel Admin. Sampai jumpa!');
   };
 
   const styles = `
@@ -140,12 +117,6 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     .logout-btn:hover {
       background: #ffe4e6;
       transform: translateY(-1px);
-    }
-
-    /* Custom Style SweetAlert agar selaras dengan tema */
-    .swal-rounded {
-      border-radius: 24px !important;
-      font-family: inherit !important;
     }
 
     @media (max-width: 768px) {
