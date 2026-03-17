@@ -75,6 +75,16 @@ function App() {
                 }
               />
 
+              {/* Admin View Student Interface */}
+              <Route
+                path="/admin/view-student"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Suspense fallback={<PageLoader />}><LevelSelectionPage /></Suspense>
+                  </ProtectedRoute>
+                }
+              />
+
           {/* Admin Routes */}
           <Route
             path="/admin"

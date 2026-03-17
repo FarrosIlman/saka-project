@@ -261,10 +261,15 @@ export default function Sidebar({ isOpen, closeSidebar }) {
         </NavLink>
 
         <span className="nav-label">Interface</span>
-        <NavLink to="/levels" className="nav-item" onClick={handleLinkClick}>
+        <NavLink
+          to="/admin/view-student"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          onClick={handleLinkClick}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <GraduationCap size={18} /> Student View
           </div>
+          <ChevronRight size={14} className="chevron" />
         </NavLink>
       </nav>
 
