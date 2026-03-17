@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import {
   LayoutDashboard,
   Users,
@@ -15,13 +16,19 @@ import {
 export default function Sidebar({ isOpen, closeSidebar }) {
   const { logout } = useAuth();
   const { success } = useToast();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLinkClick = () => {
     if (window.innerWidth <= 768) closeSidebar();
   };
 
-  // --- FUNGSI LOGOUT ADMIN SIMPLE ---
+  // --- FUNGSI LOGOUT ADMIN DENGAN CONFIRMATION ---
   const handleAdminLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
     logout();
     success('Berhasil keluar dari Panel Admin. Sampai jumpa!');
   };
@@ -266,6 +273,18 @@ export default function Sidebar({ isOpen, closeSidebar }) {
           <LogOut size={18} /> Logout Account
         </button>
       </div>
+
+      {/* Confirmation Modal untuk Logout */}
+      <ConfirmationModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Keluar dari Panel Admin?"
+        message="Sesi manajemen sistem Anda akan diakhiri. Yakin ingin melanjutkan?"
+        confirmText="Ya, Logout"
+        cancelText="Batal"
+        type="warning"
+      />
     </aside>
   );
 }
