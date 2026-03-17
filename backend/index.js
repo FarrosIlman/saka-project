@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const RealtimeManager = require('./services/realtimeManager');
 
@@ -57,20 +58,44 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// --- RATE LIMITING MIDDLEWARE ---
+// Strict rate limiter untuk auth routes (cegah brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 menit
+  max: 5, // Maksimal 5 request per IP per windowMs
+  message: 'Terlalu banyak percobaan login/register. Coba lagi dalam 15 menit.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'development', // Skip di development
+});
+
+// General rate limiter untuk endpoint lain
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 menit
+  max: 100, // Maksimal 100 request per IP per windowMs
+  message: 'Terlalu banyak request. Coba lagi nanti.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'development', // Skip di development
+});
+
 // --- ROUTES ---
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/levels', require('./routes/levelRoutes'));
-app.use('/api/progress', require('./routes/progressRoutes'));
-app.use('/api/user', require('./routes/userRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/analytics', require('./routes/analyticsRoutes'));
-app.use('/api/gamification', require('./routes/gamificationRoutes'));
-app.use('/api/comments', require('./routes/commentRoutes'));
-app.use('/api/export', require('./routes/exportRoutes'));
-app.use('/api/reporting', require('./routes/reportingRoutes'));
-app.use('/api', require('./routes/leaderboardRoutes'));
+// Auth routes dengan strict rate limiting
+app.use('/api/auth', authLimiter, require('./routes/authRoutes'));
+
+// Routes lainnya dengan general rate limiting
+app.use('/api/admin', apiLimiter, require('./routes/adminRoutes'));
+app.use('/api/levels', apiLimiter, require('./routes/levelRoutes'));
+app.use('/api/progress', apiLimiter, require('./routes/progressRoutes'));
+app.use('/api/user', apiLimiter, require('./routes/userRoutes'));
+app.use('/api/users', apiLimiter, require('./routes/userRoutes'));
+app.use('/api/notifications', apiLimiter, require('./routes/notificationRoutes'));
+app.use('/api/analytics', apiLimiter, require('./routes/analyticsRoutes'));
+app.use('/api/gamification', apiLimiter, require('./routes/gamificationRoutes'));
+app.use('/api/comments', apiLimiter, require('./routes/commentRoutes'));
+app.use('/api/export', apiLimiter, require('./routes/exportRoutes'));
+app.use('/api/reporting', apiLimiter, require('./routes/reportingRoutes'));
+app.use('/api', apiLimiter, require('./routes/leaderboardRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
