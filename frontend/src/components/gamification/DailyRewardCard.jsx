@@ -31,13 +31,15 @@ const DailyRewardCard = () => {
   };
 
   const handleClaimReward = async () => {
+    // Langsung disable button saat user klik
+    setCanClaim(false);
     setLoading(true);
+    
     try {
       const response = await api.post('/gamification/claim-daily-reward');
       
       if (response.data.success) {
         const { pointsEarned, xpGained } = response.data;
-        setCanClaim(false);
         setLastClaimed(new Date());
         
         toast.success(`🎉 Claimed! +${pointsEarned} points +${xpGained} XP`, {
@@ -51,9 +53,11 @@ const DailyRewardCard = () => {
       // Handle specific error responses
       if (error.response?.status === 400) {
         toast.error(error.response?.data?.message || 'Already claimed today');
-        setCanClaim(false);
+        // Keep disabled since already claimed
       } else {
         toast.error('Network error. Try again later.');
+        // Re-enable on error so user can try again
+        setCanClaim(true);
       }
     } finally {
       setLoading(false);
