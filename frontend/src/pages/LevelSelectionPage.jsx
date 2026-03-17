@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { levelAPI } from '../services/api';
@@ -10,16 +10,17 @@ import DailyRewardCard from '../components/gamification/DailyRewardCard';
 import { 
   LogOut, Lock, CheckCircle2, 
   Trophy, Loader2, Play,
-  User as UserIcon, Sparkles, Target, Award, ArrowRight
+  User as UserIcon, Sparkles, Target, Award, ArrowRight, ArrowLeft
 } from 'lucide-react';
 
 export default function LevelSelectionPage() {
   const [levels, setLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -94,6 +95,8 @@ export default function LevelSelectionPage() {
       .nav-brand img { width: 36px; }
       .nav-right { gap: 12px; }
       .user-pill { padding: 6px 14px 6px 6px; font-size: 14px; }
+      .back-btn { padding: 10px 12px !important; margin-right: 8px !important; }
+      .back-btn span { display: none; }
     }
 
     @media (max-width: 480px) {
@@ -208,6 +211,42 @@ export default function LevelSelectionPage() {
 
       {/* NAVBAR */}
       <nav className="top-nav">
+        {/* BACK BUTTON FOR ADMIN */}
+        {isAdmin() && location.pathname === '/admin/view-student' && (
+          <button
+            className="back-btn"
+            onClick={() => navigate('/admin/dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: '#f0f9ff',
+              color: '#0ea5e9',
+              border: '2px solid #0ea5e9',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '700',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
+              marginRight: '16px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#0ea5e9';
+              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.transform = 'translateX(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f0f9ff';
+              e.currentTarget.style.color = '#0ea5e9';
+              e.currentTarget.style.transform = 'translateX(0)';
+            }}
+          >
+            <ArrowLeft size={18} strokeWidth={2.5} />
+            <span>Dashboard</span>
+          </button>
+        )}
+
         <div className="nav-brand" onClick={() => navigate('/')}>
           <img src="/saka.png" alt="SAKA" />
           <span>SAKA PATH</span>
