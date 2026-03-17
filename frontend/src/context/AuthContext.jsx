@@ -47,8 +47,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear all user-related data dari localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('lastDailyRewardClaimed'); // Clear daily reward status
     setUser(null);
   };
 

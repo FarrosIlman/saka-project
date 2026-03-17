@@ -14,6 +14,7 @@ const DailyRewardCard = () => {
   }, []);
 
   const checkRewardStatus = () => {
+    // Cek dari localStorage dulu
     const lastClaimedTime = localStorage.getItem('lastDailyRewardClaimed');
     if (lastClaimedTime) {
       const lastClaimedDate = new Date(lastClaimedTime);
@@ -22,8 +23,16 @@ const DailyRewardCard = () => {
       if (lastClaimedDate.toDateString() === today.toDateString()) {
         setCanClaim(false);
         setLastClaimed(lastClaimedDate);
+        return;
+      } else {
+        // Claim date sudah lewat, clear dari localStorage
+        localStorage.removeItem('lastDailyRewardClaimed');
       }
     }
+    
+    // Default untuk akun baru
+    setCanClaim(true);
+    setLastClaimed(null);
   };
 
   const handleClaimReward = async () => {

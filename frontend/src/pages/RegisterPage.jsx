@@ -27,6 +27,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
     if (formData.password !== formData.confirmPassword) {
       showError('Password tidak cocok');
       setLoading(false);
@@ -37,16 +38,19 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
+    
     try {
       const result = await register(formData);
       if (!result.success) {
-        showError(result.message);
+        showError(result.message || 'Pendaftaran gagal');
         setLoading(false);
       } else {
-        showSuccess('Pendaftaran berhasil!');
+        showSuccess('Pendaftaran berhasil! Mengalihkan ke login...');
       }
     } catch (err) {
-      showError("Terjadi kesalahan pendaftaran.");
+      console.error('Register error:', err);
+      const errorMsg = err?.response?.data?.message || err?.message || 'Terjadi kesalahan pendaftaran';
+      showError(errorMsg);
       setLoading(false);
     }
   };
