@@ -87,22 +87,31 @@ export default function LevelSelectionPage() {
 
     @media (max-width: 768px) {
       .top-nav {
-        height: 70px;
-        padding: 0 16px;
-        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 16px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
       }
+      .nav-brand { flex-shrink: 0; }
       .nav-brand span { font-size: 16px; }
       .nav-brand img { width: 36px; }
-      .nav-right { gap: 12px; }
-      .user-pill { padding: 6px 14px 6px 6px; font-size: 14px; }
-      .back-btn { padding: 10px 12px !important; margin-right: 8px !important; }
+      .nav-right { gap: 8px; flex-shrink: 0; }
+      .user-pill { padding: 8px 12px 8px 8px; font-size: 13px; }
+      .back-btn { padding: 8px 10px !important; margin-right: 0 !important; flex-shrink: 0; }
       .back-btn span { display: none; }
+      .user-avatar-icon { width: 32px; height: 32px; }
     }
 
     @media (max-width: 480px) {
-      .top-nav { padding: 0 12px; }
+      .top-nav { padding: 10px 12px; gap: 6px; }
       .nav-brand span { display: none; }
-      .nav-right { gap: 8px; }
+      .nav-brand img { width: 32px; }
+      .nav-right { gap: 6px; }
+      .user-pill { padding: 6px 8px; font-size: 12px; }
+      .user-avatar-icon { width: 28px; height: 28px; }
+      .user-name { display: none; }
+      .btn-logout { padding: 8px 12px; font-size: 12px; gap: 6px; }
     }
 
     .nav-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -189,10 +198,47 @@ export default function LevelSelectionPage() {
       height: 100%; transition: 1.5s cubic-bezier(0.65, 0, 0.35, 1); 
     }
 
+    .heading-section { margin-bottom: 45px; }
+    .heading-badge { display: inline-flex; padding: 8px 18px; background: #e0f2fe; border-radius: 100px; color: #0369a1; font-size: 13px; font-weight: 800; margin-bottom: 16px; }
+    .heading-badge svg { margin-right: 8px; }
+    .heading-title { font-size: 42px; font-weight: 900; color: #0f172a; letter-spacing: -0.06em; margin: 0; line-height: 1; }
+    .heading-quote { color: #64748b; font-size: 18px; margin-top: 12px; font-weight: 600; font-style: italic; }
+
     @media (max-width: 1100px) {
-      .main-layout { grid-template-columns: 1fr; }
-      .sidebar-section { position: relative; top: 0; order: -1; }
-      .level-row { justify-content: center !important; }
+      .main-layout { grid-template-columns: 1fr; padding: 32px 24px; }
+      .sidebar-section { position: relative; top: 0; order: -1; gap: 16px; }
+      .level-row { justify-content: center !important; margin-bottom: 40px; }
+      .heading-section { margin-bottom: 35px; }
+      .heading-title { font-size: 36px; }
+      .heading-quote { font-size: 16px; }
+    }
+
+    @media (max-width: 768px) {
+      .main-layout { padding: 20px 16px; }
+      .heading-section { margin-bottom: 30px; }
+      .heading-title { font-size: 28px; letter-spacing: -0.04em; }
+      .heading-quote { font-size: 14px; margin-top: 8px; }
+      .heading-badge { padding: 6px 14px; font-size: 12px; margin-bottom: 12px; }
+      .level-node { max-width: 280px; }
+      .level-card { padding: 16px; border-radius: 24px; }
+      .img-wrapper { height: 120px; margin-bottom: 12px; }
+      .action-btn { width: 48px; height: 48px; bottom: -12px; right: 20px; }
+      .sidebar-section { gap: 12px; }
+      .sidebar-card { padding: 18px; border-radius: 20px; }
+    }
+
+    @media (max-width: 480px) {
+      .main-layout { padding: 16px 12px; }
+      .heading-section { margin-bottom: 24px; }
+      .heading-title { font-size: 22px; }
+      .heading-quote { font-size: 13px; margin-top: 6px; }
+      .heading-badge { padding: 5px 12px; font-size: 11px; margin-bottom: 10px; }
+      .level-node { max-width: 240px; }
+      .level-card { padding: 12px; border-radius: 20px; }
+      .img-wrapper { height: 100px; margin-bottom: 10px; }
+      .action-btn { width: 44px; height: 44px; bottom: -10px; right: 16px; }
+      .sidebar-card { padding: 16px; border-radius: 16px; }
+      .sidebar-section { gap: 10px; }
     }
   `;
 
@@ -271,15 +317,15 @@ export default function LevelSelectionPage() {
 
       <main className="main-layout">
         <section className="path-section">
-          <div style={{ marginBottom: '45px' }}>
-            <div style={{ display: 'inline-flex', padding: '8px 18px', background: '#e0f2fe', borderRadius: '100px', color: '#0369a1', fontSize: '13px', fontWeight: '800', marginBottom: '16px' }}>
-              <Sparkles size={16} style={{ marginRight: '8px' }} />
+          <div className="heading-section">
+            <div className="heading-badge">
+              <Sparkles size={16} />
               {getGreeting()}, {user?.username}!
             </div>
-            <h1 style={{ fontSize: '42px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.06em', margin: 0, lineHeight: 1 }}>
+            <h1 className="heading-title">
               Build Your <span style={{ color: '#0ea5e9' }}>English Skill</span>
             </h1>
-            <p style={{ color: '#64748b', fontSize: '18px', marginTop: '12px', fontWeight: '600', fontStyle: 'italic' }}>
+            <p className="heading-quote">
               "{quote}"
             </p>
           </div>
