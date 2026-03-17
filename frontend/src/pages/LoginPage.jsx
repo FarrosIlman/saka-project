@@ -42,7 +42,7 @@ export default function LoginPage() {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
       position: relative;
       overflow: hidden;
     }
@@ -77,7 +77,7 @@ export default function LoginPage() {
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 32px;
-      padding: 48px;
+      padding: 40px;
       width: 100%;
       max-width: 440px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
@@ -85,7 +85,7 @@ export default function LoginPage() {
       z-index: 10;
     }
 
-    .login-header { text-align: center; margin-bottom: 40px; }
+    .login-header { text-align: center; margin-bottom: 32px; }
 
     .hero-badge {
       display: inline-flex;
@@ -98,48 +98,48 @@ export default function LoginPage() {
       font-size: 13px;
       font-weight: 700;
       color: #0369a1;
-      margin-bottom: 24px;
-    }
-
-    .login-logo { 
-      width: 72px; 
-      height: auto; 
       margin-bottom: 20px;
     }
 
+    .login-logo { 
+      width: 64px; 
+      height: auto; 
+      margin-bottom: 16px;
+    }
+
     .login-title {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 900;
       color: #0f172a;
       letter-spacing: -0.05em;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .login-subtitle {
       color: #64748b;
-      font-size: 16px;
+      font-size: 15px;
     }
 
-    .form-group { margin-bottom: 24px; }
+    .form-group { margin-bottom: 20px; }
     
     .label-text {
       display: block;
       font-size: 14px;
       font-weight: 700;
       color: #475569;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       margin-left: 4px;
     }
 
     .input-wrapper {
       position: relative;
+      display: flex;
+      align-items: center;
     }
 
     .input-icon {
       position: absolute;
-      left: 18px;
-      top: 50%;
-      transform: translateY(-50%);
+      left: 16px;
       color: #94a3b8;
       pointer-events: none;
       z-index: 10;
@@ -147,13 +147,14 @@ export default function LoginPage() {
 
     .login-input {
       width: 100%;
-      padding: 16px 52px 16px 52px; /* Space seimbang kiri untuk icon, kanan untuk mata */
+      padding: 14px 48px 14px 48px;
       background: #ffffff;
       border: 2px solid #f1f5f9;
       border-radius: 16px;
       font-size: 15px;
       color: #1e293b;
       transition: all 0.3s;
+      line-height: 1.5;
     }
 
     .login-input:focus {
@@ -162,12 +163,9 @@ export default function LoginPage() {
       box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
     }
 
-    /* POSISI MATA YANG PAS */
     .password-toggle {
       position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+      right: 8px;
       background: none;
       border: none;
       padding: 8px;
@@ -189,7 +187,7 @@ export default function LoginPage() {
     .btn-login {
       width: 100%;
       margin-top: 8px;
-      padding: 18px;
+      padding: 16px;
       background: #0f172a;
       color: white;
       border: none;
@@ -206,14 +204,14 @@ export default function LoginPage() {
 
     .btn-login:hover:not(:disabled) {
       background: #1e293b;
-      transform: translateY(-3px);
-      box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
     }
 
     .login-footer {
-      margin-top: 36px;
+      margin-top: 32px;
       text-align: center;
-      font-size: 15px;
+      font-size: 14px;
       color: #64748b;
     }
 
@@ -221,35 +219,28 @@ export default function LoginPage() {
       color: #0ea5e9;
       text-decoration: none;
       font-weight: 800;
-      margin-left: 6px;
+      margin-left: 4px;
     }
 
-    .login-footer a:hover { text-decoration: underline; }
-
+    /* RESPONSIVE FIX */
     @media (max-width: 480px) {
       .login-container { 
         padding: 32px 20px; 
-        max-width: 100%;
+        margin: 0 10px;
       }
 
-      .login-title {
-        font-size: 24px;
-      }
+      .login-title { font-size: 24px; }
 
       .login-input {
-        padding: 14px 44px 14px 44px;
-        font-size: 14px;
+        padding: 14px 44px; /* Padding sedikit lebih rapat di mobile */
+        font-size: 16px; /* Cegah auto-zoom iOS */
       }
 
-      .input-icon {
-        left: 14px;
-        width: 18px;
-        height: 18px;
-      }
-
-      .password-toggle {
-        right: 8px;
-        padding: 6px;
+      .input-icon { left: 14px; }
+      
+      .password-toggle { 
+        right: 6px;
+        padding: 8px; 
       }
 
       .password-toggle svg {
@@ -271,7 +262,7 @@ export default function LoginPage() {
       <div className="login-container">
         <header className="login-header">
           <div className="hero-badge">
-            <Sparkles size={16} />
+            <Sparkles size={14} />
             <span>SAKA Platform</span>
           </div>
           <img 
@@ -287,7 +278,7 @@ export default function LoginPage() {
           <div className="form-group">
             <label className="label-text">Username</label>
             <div className="input-wrapper">
-              <User size={20} className="input-icon" />
+              <User size={18} className="input-icon" />
               <input
                 className="login-input"
                 type="text"
@@ -303,7 +294,7 @@ export default function LoginPage() {
           <div className="form-group">
             <label className="label-text">Password</label>
             <div className="input-wrapper">
-              <Lock size={20} className="input-icon" />
+              <Lock size={18} className="input-icon" />
               <input
                 className="login-input"
                 type={showPassword ? 'text' : 'password'}
@@ -319,18 +310,18 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex="-1"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
           <button type="submit" className="btn-login" disabled={loading}>
             {loading ? (
-              <Loader2 size={22} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
               <>
                 <span>Masuk Sekarang</span>
-                <ArrowRight size={20} />
+                <ArrowRight size={18} />
               </>
             )}
           </button>

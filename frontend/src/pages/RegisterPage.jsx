@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Eye, EyeOff, Lock, User, Loader2, Sparkles, UserPlus, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -53,9 +53,7 @@ export default function RegisterPage() {
         showError(result.message);
         setLoading(false);
       } else {
-        showSuccess('Pendaftaran berhasil! Mengalihkan ke login...');
-        // Navigasi biasanya otomatis melalui useEffect jika context update user, 
-        // jika tidak, gunakan: navigate('/login')
+        showSuccess('Pendaftaran berhasil! Mengalihkan...');
       }
     } catch (err) {
       showError("Terjadi kesalahan pendaftaran.");
@@ -70,12 +68,11 @@ export default function RegisterPage() {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
       position: relative;
       overflow: hidden;
     }
 
-    /* Background Orbs */
     .bg-decoration {
       position: absolute;
       inset: 0;
@@ -102,16 +99,15 @@ export default function RegisterPage() {
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 32px;
-      padding: 48px;
+      padding: 40px;
       width: 100%;
       max-width: 460px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
       border: 1px solid rgba(255, 255, 255, 0.7);
       z-index: 10;
-      position: relative;
     }
 
-    .register-header { text-align: center; margin-bottom: 32px; }
+    .register-header { text-align: center; margin-bottom: 28px; }
 
     .hero-badge {
       display: inline-flex;
@@ -124,25 +120,22 @@ export default function RegisterPage() {
       font-size: 13px;
       font-weight: 700;
       color: #0369a1;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    .register-logo { width: 72px; height: auto; margin-bottom: 20px; }
+    .register-logo { width: 64px; height: auto; margin-bottom: 16px; }
 
     .register-title {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 900;
       color: #0f172a;
       letter-spacing: -0.05em;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
-    .register-subtitle {
-      color: #64748b;
-      font-size: 16px;
-    }
+    .register-subtitle { color: #64748b; font-size: 15px; }
 
-    .register-form { display: flex; flex-direction: column; gap: 20px; }
+    .register-form { display: flex; flex-direction: column; gap: 18px; }
     
     .label-text {
       display: block;
@@ -153,13 +146,15 @@ export default function RegisterPage() {
       margin-left: 4px;
     }
 
-    .input-wrapper { position: relative; }
+    .input-wrapper { 
+      position: relative; 
+      display: flex;
+      align-items: center;
+    }
 
     .input-icon {
       position: absolute;
-      left: 18px;
-      top: 50%;
-      transform: translateY(-50%);
+      left: 16px;
       color: #94a3b8;
       pointer-events: none;
       z-index: 10;
@@ -167,13 +162,14 @@ export default function RegisterPage() {
 
     .register-input {
       width: 100%;
-      padding: 14px 52px 14px 52px;
+      padding: 14px 48px 14px 48px;
       background: #ffffff;
       border: 2px solid #f1f5f9;
       border-radius: 16px;
       font-size: 15px;
       color: #1e293b;
       transition: all 0.3s;
+      line-height: 1.5;
     }
 
     .register-input:focus {
@@ -184,9 +180,7 @@ export default function RegisterPage() {
 
     .password-toggle {
       position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+      right: 8px;
       background: none;
       border: none;
       padding: 8px;
@@ -207,8 +201,8 @@ export default function RegisterPage() {
 
     .btn-register {
       width: 100%;
-      margin-top: 10px;
-      padding: 18px;
+      margin-top: 8px;
+      padding: 16px;
       background: #0f172a;
       color: white;
       border: none;
@@ -225,16 +219,14 @@ export default function RegisterPage() {
 
     .btn-register:hover:not(:disabled) {
       background: #1e293b;
-      transform: translateY(-3px);
-      box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
     }
-
-    .btn-register:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .register-footer {
       margin-top: 24px;
       text-align: center;
-      font-size: 15px;
+      font-size: 14px;
       color: #64748b;
     }
 
@@ -242,15 +234,15 @@ export default function RegisterPage() {
       color: #0ea5e9;
       text-decoration: none;
       font-weight: 800;
-      margin-left: 6px;
+      margin-left: 4px;
     }
 
     .register-tip {
-      margin-top: 32px;
-      padding: 16px;
+      margin-top: 24px;
+      padding: 14px;
       background: rgba(14, 165, 233, 0.05);
       border-radius: 16px;
-      font-size: 13px;
+      font-size: 12px;
       color: #475569;
       text-align: center;
       border: 1px dashed rgba(14, 165, 233, 0.2);
@@ -259,27 +251,21 @@ export default function RegisterPage() {
     @media (max-width: 480px) {
       .register-container { 
         padding: 32px 20px;
-        max-width: 100%;
+        margin: 0 10px;
       }
 
-      .register-title { 
-        font-size: 24px;
-      }
+      .register-title { font-size: 24px; }
 
       .register-input {
-        padding: 14px 44px 14px 44px;
-        font-size: 14px;
+        padding: 14px 44px;
+        font-size: 16px; /* Penting untuk mencegah zoom-in Safari */
       }
 
-      .input-icon {
-        left: 14px;
-        width: 18px;
-        height: 18px;
-      }
+      .input-icon { left: 14px; }
 
-      .password-toggle {
-        right: 8px;
-        padding: 6px;
+      .password-toggle { 
+        right: 6px; 
+        padding: 8px;
       }
 
       .password-toggle svg {
@@ -301,7 +287,7 @@ export default function RegisterPage() {
       <div className="register-container">
         <header className="register-header">
           <div className="hero-badge">
-            <Sparkles size={16} />
+            <Sparkles size={14} />
             <span>SAKA Platform</span>
           </div>
           <img 
@@ -317,7 +303,7 @@ export default function RegisterPage() {
           <div className="form-group">
             <label className="label-text">Username</label>
             <div className="input-wrapper">
-              <User size={20} className="input-icon" />
+              <User size={18} className="input-icon" />
               <input
                 className="register-input"
                 type="text"
@@ -334,7 +320,7 @@ export default function RegisterPage() {
           <div className="form-group">
             <label className="label-text">Password</label>
             <div className="input-wrapper">
-              <Lock size={20} className="input-icon" />
+              <Lock size={18} className="input-icon" />
               <input
                 className="register-input"
                 type={showPassword ? 'text' : 'password'}
@@ -351,7 +337,7 @@ export default function RegisterPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex="-1"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -359,7 +345,7 @@ export default function RegisterPage() {
           <div className="form-group">
             <label className="label-text">Konfirmasi Password</label>
             <div className="input-wrapper">
-              <Lock size={20} className="input-icon" />
+              <Lock size={18} className="input-icon" />
               <input
                 className="register-input"
                 type={showConfirm ? 'text' : 'password'}
@@ -376,18 +362,18 @@ export default function RegisterPage() {
                 onClick={() => setShowConfirm(!showConfirm)}
                 tabIndex="-1"
               >
-                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
           <button type="submit" className="btn-register" disabled={loading}>
             {loading ? (
-              <Loader2 size={22} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
               <>
                 <span>Daftar Sekarang</span>
-                <ArrowRight size={20} />
+                <ArrowRight size={18} />
               </>
             )}
           </button>
@@ -398,7 +384,7 @@ export default function RegisterPage() {
         </footer>
 
         <div className="register-tip">
-          <p>💡 <strong>Tips:</strong> Gunakan username yang unik agar pendaftaran lebih lancar.</p>
+          <p>💡 <strong>Tips:</strong> Gunakan username unik agar pendaftaran lancar.</p>
         </div>
       </div>
     </div>
