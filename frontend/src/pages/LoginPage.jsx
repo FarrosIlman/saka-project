@@ -227,7 +227,35 @@ export default function LoginPage() {
     .login-footer a:hover { text-decoration: underline; }
 
     @media (max-width: 480px) {
-      .login-container { padding: 40px 24px; }
+      .login-container { 
+        padding: 32px 20px; 
+        max-width: 100%;
+      }
+
+      .login-title {
+        font-size: 24px;
+      }
+
+      .login-input {
+        padding: 14px 44px 14px 44px;
+        font-size: 14px;
+      }
+
+      .input-icon {
+        left: 14px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .password-toggle {
+        right: 8px;
+        padding: 6px;
+      }
+
+      .password-toggle svg {
+        width: 18px;
+        height: 18px;
+      }
     }
   `;
 

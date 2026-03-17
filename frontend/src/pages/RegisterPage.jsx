@@ -257,8 +257,35 @@ export default function RegisterPage() {
     }
 
     @media (max-width: 480px) {
-      .register-container { padding: 40px 24px; }
-      .register-title { font-size: 28px; }
+      .register-container { 
+        padding: 32px 20px;
+        max-width: 100%;
+      }
+
+      .register-title { 
+        font-size: 24px;
+      }
+
+      .register-input {
+        padding: 14px 44px 14px 44px;
+        font-size: 14px;
+      }
+
+      .input-icon {
+        left: 14px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .password-toggle {
+        right: 8px;
+        padding: 6px;
+      }
+
+      .password-toggle svg {
+        width: 18px;
+        height: 18px;
+      }
     }
   `;
 
