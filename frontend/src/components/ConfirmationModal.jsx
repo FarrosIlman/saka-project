@@ -40,13 +40,17 @@ export default function ConfirmationModal({
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.7); /* Lebih gelap sedikit agar fokus */
+      /* Gunakan fixed agar lepas dari batasan parent sidebar */
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 999999 !important; /* Naikkan drastis agar di atas dashboard */
+      /* Z-index harus sangat tinggi karena dashboard card biasanya punya z-index sendiri */
+      z-index: 9999999 !important; 
       padding: 20px;
       opacity: ${isOpen ? '1' : '0'};
       transition: opacity 0.3s ease;
@@ -56,15 +60,17 @@ export default function ConfirmationModal({
     .modal-content {
       background: white;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       border-radius: 28px;
       padding: 32px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Shadow lebih tebal */
+      /* Shadow sangat dalam agar terlihat melayang di atas card dashboard */
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.4);
       transform: ${isOpen ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(20px)'};
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       text-align: center;
       position: relative;
-      z-index: 1000000 !important;
+      /* Pastikan konten modal juga punya z-index tinggi di atas overlay-nya sendiri */
+      z-index: 10000000 !important;
     }
 
     .icon-wrapper {

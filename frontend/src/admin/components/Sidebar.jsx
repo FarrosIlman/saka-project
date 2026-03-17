@@ -43,6 +43,7 @@ export default function Sidebar({ isOpen, closeSidebar }) {
       height: 100vh;
       position: sticky;
       top: 0;
+      z-index: 1000;
       border-right: 1px solid #f1f5f9;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
