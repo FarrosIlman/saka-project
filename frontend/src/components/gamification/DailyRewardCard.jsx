@@ -13,26 +13,21 @@ const DailyRewardCard = () => {
     checkRewardStatus();
   }, []);
 
-  const checkRewardStatus = () => {
-    // Cek dari localStorage dulu
-    const lastClaimedTime = localStorage.getItem('lastDailyRewardClaimed');
-    if (lastClaimedTime) {
-      const lastClaimedDate = new Date(lastClaimedTime);
-      const today = new Date();
+  const checkRewardStatus = async () => {
+    try {
+      const response = await api.get('/gamification/daily-reward-status');
       
-      if (lastClaimedDate.toDateString() === today.toDateString()) {
-        setCanClaim(false);
-        setLastClaimed(lastClaimedDate);
-        return;
-      } else {
-        // Claim date sudah lewat, clear dari localStorage
-        localStorage.removeItem('lastDailyRewardClaimed');
+      if (response.data.success) {
+        setCanClaim(response.data.canClaim);
+        
+        if (response.data.lastClaimedDate) {
+          setLastClaimed(new Date(response.data.lastClaimedDate));
+        }
       }
+    } catch (error) {
+      console.error('Failed to check reward status:', error);
+      setCanClaim(true);
     }
-    
-    // Default untuk akun baru
-    setCanClaim(true);
-    setLastClaimed(null);
   };
 
   const handleClaimReward = async () => {
@@ -42,8 +37,6 @@ const DailyRewardCard = () => {
       
       if (response.data.success) {
         const { pointsEarned, xpGained } = response.data;
-        
-        localStorage.setItem('lastDailyRewardClaimed', new Date().toISOString());
         setCanClaim(false);
         setLastClaimed(new Date());
         
@@ -54,7 +47,14 @@ const DailyRewardCard = () => {
       }
     } catch (error) {
       console.error('Failed to claim reward:', error);
-      toast.error('Already claimed today or network error');
+      
+      // Handle specific error responses
+      if (error.response?.status === 400) {
+        toast.error(error.response?.data?.message || 'Already claimed today');
+        setCanClaim(false);
+      } else {
+        toast.error('Network error. Try again later.');
+      }
     } finally {
       setLoading(false);
     }

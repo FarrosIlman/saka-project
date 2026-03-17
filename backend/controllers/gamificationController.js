@@ -104,8 +104,25 @@ exports.claimDailyReward = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
+    // Check if already claimed today
+    if (user.lastDailyRewardClaimed) {
+      const lastClaimedDate = new Date(user.lastDailyRewardClaimed);
+      const today = new Date();
+      
+      if (lastClaimedDate.toDateString() === today.toDateString()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Anda sudah claim reward hari ini. Coba besok lagi!',
+          alreadyClaimed: true,
+          nextClaimTime: new Date(lastClaimedDate.getTime() + 24 * 60 * 60 * 1000),
+        });
+      }
+    }
+    
+    // Award points and XP
     user.totalPoints = (user.totalPoints || 0) + 10;
     user.totalXP = (user.totalXP || 0) + 25;
+    user.lastDailyRewardClaimed = new Date();
     user.lastLogin = new Date();
     await user.save();
 
@@ -119,11 +136,43 @@ exports.claimDailyReward = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Daily reward claimed',
-      points: 10,
-      xp: 25,
+      message: 'Daily reward claimed successfully',
+      pointsEarned: 10,
+      xpGained: 25,
+      nextClaimTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
   } catch (error) {
+    console.error('Claim daily reward error:', error);
     res.status(500).json({ message: 'Error claiming reward' });
+  }
+};
+
+// Helper endpoint to check daily reward status
+exports.checkDailyRewardStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    let canClaim = true;
+    let nextClaimTime = null;
+    
+    if (user.lastDailyRewardClaimed) {
+      const lastClaimedDate = new Date(user.lastDailyRewardClaimed);
+      const today = new Date();
+      
+      if (lastClaimedDate.toDateString() === today.toDateString()) {
+        canClaim = false;
+        nextClaimTime = new Date(lastClaimedDate.getTime() + 24 * 60 * 60 * 1000);
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      canClaim,
+      lastClaimedDate: user.lastDailyRewardClaimed,
+      nextClaimTime,
+    });
+  } catch (error) {
+    console.error('Check reward status error:', error);
+    res.status(500).json({ message: 'Error checking reward status' });
   }
 };
