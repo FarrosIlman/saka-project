@@ -9,14 +9,26 @@ const RealtimeManager = require('./services/realtimeManager');
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// ❌ HAPUS ATAU KOMENTARI BARIS INI:
+// connectDB(); 
 
 const app = express();
 
 // --- PERBAIKAN UNTUK VERCEL (PROXY) ---
 // Wajib diaktifkan agar express-rate-limit tidak crash saat membaca IP pengguna melalui Vercel
 app.set('trust proxy', 1);
+
+// ✅ TAMBAHKAN MIDDLEWARE INI:
+// Memaksa Vercel menunggu koneksi database selesai sebelum memproses request apapun
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Middleware DB Connection Error:', error);
+    res.status(500).json({ message: 'Gagal terhubung ke database' });
+  }
+});
 
 const httpServer = http.createServer(app);
 
