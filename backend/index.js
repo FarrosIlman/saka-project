@@ -13,6 +13,11 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// --- PERBAIKAN UNTUK VERCEL (PROXY) ---
+// Wajib diaktifkan agar express-rate-limit tidak crash saat membaca IP pengguna melalui Vercel
+app.set('trust proxy', 1);
+
 const httpServer = http.createServer(app);
 
 // Initialize Realtime Manager with HTTP server for Socket.io
@@ -29,7 +34,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'https://saka-frontend.vercel.app', // GANTI dengan URL Vercel Frontend kamu
-      /\.vercel\.app$/                     // Izinkan semua subdomain vercel.app
+      /\.vercel\.app$/                      // Izinkan semua subdomain vercel.app
     ];
 
     const isAllowed = allowedOrigins.some((allowed) => {
