@@ -5,9 +5,10 @@ import { useToast } from '../context/ToastContext';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 import CommentSection from '../components/discussion/CommentSection';
 import stringSimilarity from 'string-similarity';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mic, ChevronRight, CheckCircle2, 
-  XCircle, AlertCircle, ArrowLeft, Loader2, Play, Pause, Square, Volume2, Sparkles
+  XCircle, AlertCircle, ArrowLeft, Loader2, Play, Pause, Square, Volume2, Sparkles, Trophy
 } from 'lucide-react';
 
 export default function QuizPage() {
@@ -91,10 +92,10 @@ export default function QuizPage() {
       setCorrectAnswer(response.data.correctAnswer);
       setAnswered(true);
       if (response.data.correct) { 
-        setFeedback('Great! Correct answer. ✨'); 
+        setFeedback('Luar Biasa! Jawaban Benar. ✨'); 
         setScore(score + 1); 
       } else { 
-        setFeedback('Not quite right, try again!'); 
+        setFeedback('Belum Tepat, Ayo Coba Lagi!'); 
         handleIncorrectAnswer(); 
       }
     } catch (err) { error('Gagal memeriksa jawaban.'); }
@@ -120,208 +121,227 @@ export default function QuizPage() {
     const finalScore = Math.round((score / questions.length) * 100);
     try {
       await progressAPI.completeLevel({ levelNumber: Number(levelNumber), score: finalScore });
-      success(`Completed! Score: ${finalScore}%`);
+      success(`Selesai! Skormu: ${finalScore}%`);
       navigate('/levels');
     } catch (err) { navigate('/levels'); }
   };
 
-  const styles = `
-    .quiz-page { 
-      min-height: 100vh; background: #fcfcfd; position: relative;
-      padding: 30px 20px; display: flex; flex-direction: column; align-items: center; 
-    }
-
-    .bg-decoration { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-    .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.3; }
-    .orb-1 { width: 300px; height: 300px; background: #bae6fd; top: -50px; right: -50px; }
-    .orb-2 { width: 250px; height: 250px; background: #e0e7ff; bottom: -30px; left: -50px; }
-
-    .content-wrapper { position: relative; z-index: 10; width: 100%; max-width: 780px; }
-    
-    .progress-header { width: 100%; display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-
-    .btn-back {
-      background: white; border: 1.5px solid #e2e8f0; width: 48px; height: 48px; border-radius: 16px; 
-      cursor: pointer; display: flex; align-items: center; justify-content: center; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: 0.3s; color: #0f172a;
-    }
-    .btn-back:hover { background: #0f172a; color: white; transform: translateX(-3px); }
-    
-    .progress-bar-bg { flex: 1; height: 12px; background: #e2e8f0; border-radius: 100px; padding: 3px; }
-    .progress-bar-fill { 
-      height: 100%; background: #0ea5e9; border-radius: 100px; 
-      transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
-    }
-
-    .quiz-card { 
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-      width: 100%; border-radius: 32px; padding: 32px; 
-      box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.05); 
-      border: 1px solid rgba(255, 255, 255, 0.8);
-    }
-
-    .image-container { 
-      position: relative; width: 100%; height: 240px; border-radius: 24px; 
-      overflow: hidden; margin-bottom: 24px; border: 1px solid #f1f5f9;
-    }
-    .question-img { width: 100%; height: 100%; object-fit: cover; }
-
-    .audio-pill {
-      position: absolute; bottom: 16px; right: 16px; 
-      background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
-      padding: 6px 14px; border-radius: 100px; display: flex; align-items: center; gap: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .audio-btn { 
-      background: #0ea5e9; color: white; border: none; width: 36px; height: 36px; 
-      border-radius: 100px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    }
-
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
-    .option-bubble {
-      padding: 16px 20px; border-radius: 100px; font-size: 15px; font-weight: 700;
-      text-align: left; transition: 0.2s; border: 1.5px solid #f1f5f9; 
-      background: white; cursor: pointer; display: flex; justify-content: space-between; 
-      align-items: center; color: #475569;
-    }
-    .option-bubble:hover:not(:disabled) { border-color: #0ea5e9; background: #f0f9ff; transform: scale(1.02); }
-
-    .mic-section { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 32px; cursor: pointer; }
-    .mic-circle {
-      width: 72px; height: 72px; border-radius: 100px; background: white; color: #64748b;
-      display: flex; align-items: center; justify-content: center; border: 2px solid #f1f5f9; 
-      box-shadow: 0 8px 15px rgba(0,0,0,0.04); transition: 0.3s;
-    }
-    .mic-section:hover .mic-circle:not(.listening) { border-color: #0ea5e9; color: #0ea5e9; transform: translateY(-3px); }
-    .mic-circle.listening { background: #ef4444; color: white; border-color: #ef4444; animation: ripple 1.2s infinite; }
-    
-    @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); } 100% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } }
-
-    .instr-text { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
-
-    .feedback-bubble {
-      display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-radius: 100px;
-      font-weight: 700; margin-top: 24px; font-size: 15px;
-    }
-
-    .btn-next {
-      margin-top: 24px; width: 100%; padding: 18px; border-radius: 100px;
-      background: #0f172a; color: white; border: none; font-weight: 800; 
-      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-
-    @media (max-width: 640px) {
-      .options-grid { grid-template-columns: 1fr; }
-      .quiz-card { padding: 24px; }
-      .image-container { height: 180px; }
-    }
-  `;
-
   if (loading || (questions.length > 0 && !currentQuestion)) {
     return (
-      <div className="quiz-page">
-        <style>{styles}</style>
-        <Loader2 className="animate-spin text-sky-500" size={40} style={{marginTop: '100px'}} />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <Loader2 className="animate-spin text-sky-500" size={50} />
+        <p className="mt-4 text-slate-500 font-bold animate-pulse">Menyiapkan Misi...</p>
       </div>
     );
   }
 
+  const progressPercentage = ((currentQuestionIndex) / questions.length) * 100;
+
   return (
-    <div className="quiz-page">
-      <style>{styles}</style>
+    <div className="relative min-h-screen bg-slate-50 bg-grid-pattern overflow-x-hidden flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 pb-24">
       
-      <div className="bg-decoration">
-        <div className="orb orb-1"></div>
-        <div className="orb orb-2"></div>
+      {/* Background Decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-5%] right-[-5%] w-[400px] h-[400px] rounded-full bg-sky-200/40 mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
       </div>
 
-      <div className="content-wrapper">
-        <div className="progress-header">
-          <button onClick={() => navigate('/levels')} className="btn-back">
+      <div className="relative z-10 w-full max-w-3xl flex flex-col gap-6">
+        
+        {/* Header / Progress Bar */}
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex items-center gap-4 sm:gap-6 w-full mb-2"
+        >
+          <button 
+            onClick={() => navigate('/levels')} 
+            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border-2 border-slate-200 rounded-2xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+          >
             <ArrowLeft size={24} strokeWidth={2.5} />
           </button>
-          <div className="progress-bar-bg">
-            <div className="progress-bar-fill" style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }} />
+          
+          <div className="flex-1">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Progres Kuis</span>
+              <span className="text-xs font-black text-sky-500">{currentQuestionIndex + 1} / {questions.length}</span>
+            </div>
+            <div className="w-full h-4 bg-slate-200 rounded-full p-1 shadow-inner">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="h-full bg-sky-500 rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+              />
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          
+          {/* Hearts / Lives */}
+          <div className="flex-shrink-0 flex gap-1.5">
             {[...Array(3)].map((_, i) => (
-              <XCircle key={i} size={24} fill={i < incorrectAttempts ? '#ef4444' : 'rgba(226, 232, 240, 0.6)'} color={i < incorrectAttempts ? '#ef4444' : '#cbd5e1'} />
+              <motion.div 
+                key={i}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <XCircle 
+                  size={28} 
+                  className={`transition-colors duration-300 ${i < incorrectAttempts ? 'text-rose-500 fill-rose-100' : 'text-slate-300 fill-slate-200/50'}`}
+                />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="quiz-card">
-          <div className="image-container">
-            <img src={currentQuestion?.imageUrl} alt="Quiz" className="question-img" />
-            <div className="audio-pill">
-              <Volume2 size={18} color="#64748b" />
-              <input type="range" min="0" max="1" step="0.1" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} style={{ width: '60px' }} />
-              <button className="audio-btn" onClick={isPlaying ? () => window.speechSynthesis.cancel() : speakQuestion}>
-                {isPlaying ? <Square size={16} fill="white" strokeWidth={0} /> : <Play size={16} fill="white" style={{marginLeft: '2px'}} />}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-            <div style={{ padding: '4px 12px', background: '#f0f9ff', borderRadius: '100px', color: '#0ea5e9', fontSize: '11px', fontWeight: '800' }}>
-              LEVEL {levelNumber} • QUESTION {currentQuestionIndex + 1}/{questions.length}
-            </div>
-          </div>
-
-          <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', textAlign: 'center', marginBottom: '4px', letterSpacing: '-0.03em' }}>
-            {currentQuestion?.questionText}
-          </h2>
-          <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '14px', fontWeight: '600', marginBottom: '24px' }}>Choose the correct answer</p>
-
-          <div className="options-grid">
-            {currentQuestion?.options.map((option, idx) => {
-              const isCorrect = answered && option === correctAnswer;
-              const isWrong = answered && selectedOption === option && option !== correctAnswer;
-              return (
-                <button key={idx} disabled={answered} onClick={() => checkAnswer(option)} className="option-bubble"
-                  style={{
-                    borderColor: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#f1f5f9',
-                    background: isCorrect ? '#ecfdf5' : isWrong ? '#fff1f2' : 'white',
-                    color: isCorrect ? '#065f46' : isWrong ? '#991b1b' : '#475569',
-                    boxShadow: isCorrect ? '0 4px 0px #10b981' : isWrong ? '0 4px 0px #ef4444' : '0 4px 0px #f1f5f9'
-                  }}>
-                  <span>{option}</span>
-                  {isCorrect && <CheckCircle2 size={18} />}
-                  {isWrong && <XCircle size={18} />}
+        {/* Main Quiz Card */}
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={currentQuestionIndex}
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -50, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full glass-card p-6 sm:p-8 relative"
+          >
+            {/* Image Container */}
+            <div className="relative w-full h-48 sm:h-64 rounded-3xl overflow-hidden mb-8 border-4 border-white shadow-md bg-slate-100">
+              {currentQuestion?.imageUrl ? (
+                <img src={currentQuestion.imageUrl} alt="Quiz" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <span className="font-bold">No Image</span>
+                </div>
+              )}
+              
+              {/* Audio Controls over image */}
+              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md px-3 py-2 rounded-2xl flex items-center gap-3 shadow-lg border border-white/50">
+                <Volume2 size={20} className="text-slate-500" />
+                <input 
+                  type="range" min="0" max="1" step="0.1" 
+                  value={volume} 
+                  onChange={(e) => setVolume(parseFloat(e.target.value))} 
+                  className="w-16 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" 
+                />
+                <button 
+                  onClick={isPlaying ? () => window.speechSynthesis.cancel() : speakQuestion}
+                  className="w-10 h-10 flex items-center justify-center bg-sky-500 text-white rounded-xl hover:bg-sky-600 active:scale-95 transition-all shadow-md shadow-sky-500/30"
+                >
+                  {isPlaying ? <Square size={16} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
                 </button>
-              );
-            })}
-          </div>
-
-          <div className="mic-section" onClick={!answered ? startListening : null}>
-            <button className={`mic-circle ${isListening ? 'listening' : ''}`} style={{ opacity: answered ? 0.4 : 1 }}>
-              <Mic size={32} />
-            </button>
-            <span className="instr-text">
-              {isListening ? 'Listening...' : answered ? 'Answer Locked' : 'Tap to Speak'}
-            </span>
-          </div>
-
-          {feedback && (
-            <div className="feedback-bubble" style={{
-              background: answered ? (selectedOption === correctAnswer ? '#ecfdf5' : '#fff1f2') : '#f0f9ff',
-              color: answered ? (selectedOption === correctAnswer ? '#10b981' : '#e11d48') : '#0ea5e9',
-              border: `1px solid ${answered ? (selectedOption === correctAnswer ? '#10b981' : '#ef4444') : '#e2e8f0'}`
-            }}>
-              {selectedOption === correctAnswer ? <CheckCircle2 size={22} /> : <AlertCircle size={22} />}
-              <span>{feedback}</span>
+              </div>
             </div>
-          )}
 
-          {answered && (
-            <button className="btn-next" onClick={handleNextQuestion}>
-              {currentQuestionIndex < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
-              <ChevronRight size={20} />
-            </button>
-          )}
-        </div>
+            {/* Question Text */}
+            <div className="text-center mb-8">
+              <div className="inline-block px-4 py-1.5 bg-sky-50 border border-sky-100 rounded-full text-sky-600 font-bold text-xs mb-4 uppercase tracking-wider">
+                Level {levelNumber}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+                {currentQuestion?.questionText}
+              </h2>
+            </div>
 
-        <div style={{ marginTop: '40px' }}>
+            {/* Options Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+              {currentQuestion?.options.map((option, idx) => {
+                const isCorrect = answered && option === correctAnswer;
+                const isWrong = answered && selectedOption === option && option !== correctAnswer;
+                
+                return (
+                  <motion.button 
+                    key={idx} 
+                    disabled={answered} 
+                    onClick={() => checkAnswer(option)}
+                    whileHover={!answered ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={!answered ? { scale: 0.98 } : {}}
+                    className={`
+                      relative flex items-center justify-between p-5 rounded-2xl font-bold text-left transition-all duration-300 border-2 shadow-[0_4px_0_0_transparent]
+                      ${isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-emerald-500/30' : 
+                        isWrong ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-rose-500/30' : 
+                        'bg-white border-slate-200 text-slate-600 hover:border-sky-400 hover:bg-sky-50 shadow-slate-200'}
+                    `}
+                  >
+                    <span className="text-lg">{option}</span>
+                    {isCorrect && <CheckCircle2 size={24} className="text-emerald-500 flex-shrink-0" />}
+                    {isWrong && <XCircle size={24} className="text-rose-500 flex-shrink-0" />}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Microphone Interaction */}
+            <div className="flex flex-col items-center justify-center mb-4">
+              <motion.button 
+                disabled={answered}
+                onClick={!answered ? startListening : null}
+                whileHover={!answered && !isListening ? { scale: 1.1, y: -5 } : {}}
+                whileTap={!answered ? { scale: 0.9 } : {}}
+                className={`
+                  relative w-20 h-20 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
+                  ${answered ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 
+                    isListening ? 'bg-rose-500 border-rose-600 text-white shadow-xl shadow-rose-500/50' : 
+                    'bg-white border-sky-100 text-sky-500 shadow-xl shadow-slate-200 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
+                `}
+              >
+                <Mic size={32} strokeWidth={isListening ? 3 : 2.5} />
+                
+                {/* Ripple Effect when listening */}
+                {isListening && (
+                  <>
+                    <span className="absolute inset-0 rounded-full border-2 border-rose-500 animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-75"></span>
+                    <span className="absolute inset-0 rounded-full border-2 border-rose-400 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] opacity-50 animation-delay-300"></span>
+                  </>
+                )}
+              </motion.button>
+              
+              <span className={`mt-4 font-black text-sm uppercase tracking-widest transition-colors ${
+                isListening ? 'text-rose-500' : answered ? 'text-slate-400' : 'text-sky-500'
+              }`}>
+                {isListening ? 'Mendengarkan...' : answered ? 'Terkunci' : 'Ketuk & Bicara'}
+              </span>
+            </div>
+
+            {/* Feedback Message */}
+            <AnimatePresence>
+              {feedback && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`
+                    mt-6 flex items-center gap-3 p-4 rounded-2xl font-bold border-2
+                    ${selectedOption === correctAnswer ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}
+                  `}
+                >
+                  {selectedOption === correctAnswer ? <Trophy size={24} className="text-emerald-500 flex-shrink-0" /> : <AlertCircle size={24} className="text-rose-500 flex-shrink-0" />}
+                  <span className="text-base sm:text-lg">{feedback}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Next Button */}
+            <AnimatePresence>
+              {answered && (
+                <motion.button 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  onClick={handleNextQuestion}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full mt-6 py-5 bg-slate-900 text-white text-lg font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all"
+                >
+                  {currentQuestionIndex < questions.length - 1 ? 'Lanjut ke Soal Berikutnya' : 'Selesaikan Misi'}
+                  <ChevronRight size={24} strokeWidth={3} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Comments Section */}
+        <div className="w-full mt-4">
           <CommentSection levelId={levelNumber} />
         </div>
       </div>

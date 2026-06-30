@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { levelAPI } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { ArrowLeft, Save, Plus, Pencil, Trash2, Loader2, Settings, HelpCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LevelEditPage() {
   const showToast = useToast() || { success: () => {}, error: () => {} };
@@ -28,7 +30,7 @@ export default function LevelEditPage() {
         setQuestions(foundLevel.questions);
       }
     } catch (err) {
-      console.error('Failed to fetch level:', err);
+      showToast.error('Failed to fetch level details');
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,6 @@ export default function LevelEditPage() {
       await levelAPI.updateLevel(levelId, level);
       showToast.success(`Level "${level.title}" updated successfully`);
     } catch (err) {
-      console.error('Failed to update level:', err);
       showToast.error('Failed to update level');
     }
   };
@@ -53,7 +54,6 @@ export default function LevelEditPage() {
       setEditingQuestion(null);
       fetchLevel();
     } catch (err) {
-      console.error('Failed to create question:', err);
       showToast.error('Failed to create question');
     }
   };
@@ -66,7 +66,6 @@ export default function LevelEditPage() {
       setEditingQuestion(null);
       fetchLevel();
     } catch (err) {
-      console.error('Failed to update question:', err);
       showToast.error('Failed to update question');
     }
   };
@@ -82,181 +81,229 @@ export default function LevelEditPage() {
       setDeleteModal({ isOpen: false, question: null });
       fetchLevel();
     } catch (err) {
-      console.error('Failed to delete question:', err);
       showToast.error('Failed to delete question');
-      alert('Failed to delete question');
     }
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
+      <div className="flex justify-center items-center min-h-[80vh]">
+        <Loader2 className="animate-spin text-sky-500" size={48} />
       </div>
     );
   }
 
   if (!level) {
     return (
-      <div style={{ padding: '40px' }}>
-        <p>Level not found</p>
+      <div className="text-center py-20">
+        <p className="text-xl font-bold text-slate-500">Level not found</p>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '40px' }}>
-      <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '32px', color: '#111827' }}>
-        Edit Level {level.levelNumber}
-      </h1>
-
-      {/* Level Details Form */}
-      <div className="card" style={{ marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>
-          Level Details
-        </h2>
-        <form onSubmit={handleUpdateLevel}>
-          <div className="input-group">
-            <label>Title</label>
-            <input
-              type="text"
-              value={level.title}
-              onChange={(e) => setLevel({ ...level, title: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <label>Theme</label>
-            <input
-              type="text"
-              value={level.theme}
-              onChange={(e) => setLevel({ ...level, theme: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <label>Image URL</label>
-            <input
-              type="url"
-              value={level.imageUrl}
-              onChange={(e) => setLevel({ ...level, imageUrl: e.target.value })}
-              required
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary">
-            Update Level
-          </button>
-        </form>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-5xl mx-auto">
+      
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button 
+          onClick={() => navigate('/admin/content/levels')}
+          className="p-3 bg-white border-2 border-slate-200 rounded-full text-slate-500 hover:border-sky-400 hover:text-sky-500 transition-colors"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight mb-1">
+            Edit Level {level.levelNumber}
+          </h1>
+          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">{level.title}</p>
+        </div>
       </div>
 
-      {/* Questions Section */}
-      <div className="card">
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-        }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
-            Questions ({questions.length})
-          </h2>
-          <button
-            onClick={() => setEditingQuestion({
-              questionText: '',
-              imageUrl: '',
-              options: ['', '', ''],
-              correctAnswer: '',
-            })}
-            className="btn btn-primary"
-          >
-            ➕ Add Question
-          </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Level Details */}
+        <div className="lg:col-span-1">
+          <div className="glass-card bg-white p-6 sticky top-24">
+            <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+              <Settings size={20} className="text-sky-500" /> Level Configuration
+            </h2>
+            <form onSubmit={handleUpdateLevel} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Title</label>
+                <input
+                  type="text" required
+                  value={level.title}
+                  onChange={(e) => setLevel({ ...level, title: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Theme</label>
+                <input
+                  type="text" required
+                  value={level.theme}
+                  onChange={(e) => setLevel({ ...level, theme: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Image URL</label>
+                <input
+                  type="url" required
+                  value={level.imageUrl}
+                  onChange={(e) => setLevel({ ...level, imageUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium text-sm"
+                />
+                {level.imageUrl && (
+                  <div className="mt-3 aspect-video rounded-xl overflow-hidden bg-slate-100 border-2 border-slate-200">
+                    <img src={level.imageUrl} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <div className="pt-2">
+                <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition-colors">
+                  <Save size={18} /> Update Level Config
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/* Question List */}
-        {questions.map((question, index) => (
-          <div
-            key={question._id}
-            style={{
-              padding: '20px',
-              border: '2px solid #e5e7eb',
-              borderRadius: '12px',
-              marginBottom: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: '#111827' }}>
-                  Question {index + 1}: {question.questionText}
-                </h3>
-                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
-                  <strong>Options:</strong> {question.options.join(', ')}
-                </p>
-                <p style={{ fontSize: '14px', color: '#10b981', fontWeight: '600' }}>
-                  <strong>Correct Answer:</strong> {question.correctAnswer}
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => setEditingQuestion(question)}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '14px' }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteQuestion(question)}
-                  className="btn btn-danger"
-                  style={{ padding: '8px 16px', fontSize: '14px' }}
-                >
-                  Delete
-                </button>
-              </div>
+        {/* Right Column: Questions */}
+        <div className="lg:col-span-2">
+          <div className="glass-card bg-white p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <HelpCircle size={24} className="text-sky-500" /> 
+                Task Questions <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-lg text-sm">{questions.length}</span>
+              </h2>
+              <button
+                onClick={() => setEditingQuestion({
+                  questionText: '',
+                  imageUrl: '',
+                  options: ['', '', ''],
+                  correctAnswer: '',
+                })}
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors w-full sm:w-auto justify-center"
+              >
+                <Plus size={18} /> Add Question
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {questions.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                  <HelpCircle size={48} className="mx-auto text-slate-300 mb-3" />
+                  <p className="font-bold text-slate-500">Belum ada soal untuk level ini.</p>
+                </div>
+              ) : (
+                questions.map((question, index) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
+                    key={question._id} 
+                    className="p-5 border-2 border-slate-100 rounded-2xl bg-slate-50/50 hover:border-sky-200 transition-colors group"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3 mb-3">
+                          <span className="w-8 h-8 shrink-0 bg-sky-100 text-sky-600 font-black rounded-lg flex items-center justify-center">
+                            {index + 1}
+                          </span>
+                          <h3 className="text-lg font-bold text-slate-800 pt-0.5">
+                            {question.questionText}
+                          </h3>
+                        </div>
+                        
+                        <div className="pl-11 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Options</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {question.options.map((opt, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-md border border-slate-200">
+                                  {opt}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="bg-sky-50 p-3 rounded-xl border border-sky-100 shadow-sm">
+                            <span className="block text-[10px] font-black text-sky-500/70 uppercase tracking-widest mb-1">Correct Answer</span>
+                            <span className="font-bold text-sky-700 text-sm">{question.correctAnswer}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex sm:flex-col gap-2 w-full sm:w-auto pl-11 sm:pl-0 pt-2 sm:pt-0">
+                        <button
+                          onClick={() => setEditingQuestion(question)}
+                          className="flex-1 sm:flex-none flex justify-center items-center gap-2 p-2.5 bg-white border border-slate-200 text-slate-600 hover:text-sky-600 hover:border-sky-300 rounded-xl transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={16} /> <span className="sm:hidden font-bold text-sm">Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteQuestion(question)}
+                          className="flex-1 sm:flex-none flex justify-center items-center gap-2 p-2.5 bg-white border border-slate-200 text-slate-500 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-500 rounded-xl transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} /> <span className="sm:hidden font-bold text-sm">Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
-        ))}
+        </div>
+      </div>
 
-        {/* Question Form Modal */}
-        {editingQuestion && (
-          <div className="modal-overlay" onClick={() => setEditingQuestion(null)}>
-            <div
-              className="modal-content"
-              onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: '700px' }}
-            >
-              <h3 className="modal-header">
+      {/* Modal Edit/Add Question */}
+      {editingQuestion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl overflow-hidden my-8"
+          >
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-xl font-black text-slate-900">
                 {editingQuestion._id ? 'Edit Question' : 'Add New Question'}
               </h3>
-              <form onSubmit={editingQuestion._id ? handleUpdateQuestion : handleCreateQuestion}>
-                <div className="input-group">
-                  <label>Question Text</label>
-                  <textarea
-                    value={editingQuestion.questionText}
-                    onChange={(e) => setEditingQuestion({ ...editingQuestion, questionText: e.target.value })}
-                    rows="3"
-                    required
-                  />
-                </div>
+              <button onClick={() => setEditingQuestion(null)} className="p-2 text-slate-400 hover:bg-white rounded-xl transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={editingQuestion._id ? handleUpdateQuestion : handleCreateQuestion} className="p-8 space-y-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Question Text</label>
+                <textarea
+                  value={editingQuestion.questionText}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, questionText: e.target.value })}
+                  rows="3" required
+                  placeholder="Enter the question..."
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium resize-none"
+                />
+              </div>
 
-                <div className="input-group">
-                  <label>Image URL</label>
-                  <input
-                    type="url"
-                    value={editingQuestion.imageUrl}
-                    onChange={(e) => setEditingQuestion({ ...editingQuestion, imageUrl: e.target.value })}
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Image URL (Optional)</label>
+                <input
+                  type="url"
+                  value={editingQuestion.imageUrl}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, imageUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
+              </div>
 
-                <div className="input-group">
-                  <label>Options (3 options)</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Options (Required 3)</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {editingQuestion.options.map((option, index) => (
                     <input
                       key={index}
-                      type="text"
+                      type="text" required
                       value={option}
                       onChange={(e) => {
                         const newOptions = [...editingQuestion.options];
@@ -264,47 +311,39 @@ export default function LevelEditPage() {
                         setEditingQuestion({ ...editingQuestion, options: newOptions });
                       }}
                       placeholder={`Option ${index + 1}`}
-                      required
-                      style={{ marginBottom: '8px' }}
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium text-sm text-center"
                     />
                   ))}
                 </div>
+              </div>
 
-                <div className="input-group">
-                  <label>Correct Answer</label>
-                  <select
-                    value={editingQuestion.correctAnswer}
-                    onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value })}
-                    required
-                  >
-                    <option value="">Select correct answer</option>
-                    {editingQuestion.options.map((option, index) => (
-                      <option key={index} value={option}>
-                        {option || `Option ${index + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                <label className="block text-xs font-black text-slate-600 uppercase tracking-widest mb-2">Set Correct Answer</label>
+                <select
+                  value={editingQuestion.correctAnswer}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, correctAnswer: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-bold text-slate-700 cursor-pointer"
+                >
+                  <option value="" disabled>Select correct answer</option>
+                  {editingQuestion.options.map((option, index) => (
+                    option && <option key={index} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="modal-actions">
-                  <button type="button" onClick={() => setEditingQuestion(null)} className="btn btn-secondary">
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    {editingQuestion._id ? 'Update' : 'Create'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginTop: '24px' }}>
-        <button onClick={() => navigate('/admin/content/levels')} className="btn btn-secondary">
-          ← Back to Levels
-        </button>
-      </div>
+              <div className="flex gap-4 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setEditingQuestion(null)} className="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                  {editingQuestion._id ? 'Save Changes' : 'Create Question'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
 
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
@@ -312,8 +351,9 @@ export default function LevelEditPage() {
         onConfirm={confirmDeleteQuestion}
         title="Delete Question"
         message="Are you sure you want to delete this question? This action cannot be undone."
-        confirmText="Delete"
+        confirmText="Yes, Delete"
+        type="danger"
       />
-    </div>
+    </motion.div>
   );
 }

@@ -5,7 +5,7 @@
 
 const http = require('http');
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'http://localhost:7000/api';
 const TEST_USER = {
   username: 'student1',
   password: 'student123'

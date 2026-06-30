@@ -45,7 +45,7 @@ const BadgeDisplay = ({ badges = [] }) => {
           <h3 className="badge-section-title">Unlocked Badges</h3>
           <div className="badge-grid">
             {unlockedBadges.map((badge) => {
-              const meta = badgeMetadata[badge.type] || {};
+              const meta = badgeMetadata[badge.badgeType] || {};
               return (
                 <div
                   key={badge._id}
@@ -60,7 +60,7 @@ const BadgeDisplay = ({ badges = [] }) => {
                   <p className="badge-rarity" style={{ color: rarityColors[badge.rarity] }}>
                     {badge.rarity}
                   </p>
-                  <p className="badge-points">+{badge.pointsAwarded} points</p>
+                  <p className="badge-points">+{badge.points} points</p>
                   {badge.unlockedAt && (
                     <p className="badge-date">
                       {new Date(badge.unlockedAt).toLocaleDateString()}
@@ -78,9 +78,9 @@ const BadgeDisplay = ({ badges = [] }) => {
           <h3 className="badge-section-title">Locked Badges</h3>
           <div className="badge-grid">
             {lockedBadges.map((badge) => {
-              const meta = badgeMetadata[badge.type] || {};
-              const progress = badge.currentProgress || 0;
-              const target = badge.targetProgress || 1;
+              const meta = badgeMetadata[badge.badgeType] || {};
+              const progress = badge.progress?.current || 0;
+              const target = badge.progress?.target || 1;
               const progressPercent = (progress / target) * 100;
 
               return (

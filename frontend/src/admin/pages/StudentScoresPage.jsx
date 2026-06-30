@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { ArrowLeft, Loader2, Award, Target, TrendingUp, ShieldAlert, BarChart3 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function StudentScoresPage() {
   const showToast = useToast() || { success: () => {}, error: () => {} };
@@ -21,9 +23,8 @@ export default function StudentScoresPage() {
       setStudentData(response.data);
     } catch (err) {
       console.error('Failed to fetch student scores:', err);
-      const errorMessage = 'Failed to load student scores';
-      setError(errorMessage);
-      showToast.error(errorMessage);
+      setError('Failed to load student scores');
+      showToast.error('Failed to load student scores');
     } finally {
       setLoading(false);
     }
@@ -46,55 +47,47 @@ export default function StudentScoresPage() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      completed: { bg: '#dcfce7', color: '#166534', text: '✅ Completed' },
-      unlocked: { bg: '#dbeafe', color: '#1e40af', text: '🔓 In Progress' },
-      locked: { bg: '#f3f4f6', color: '#6b7280', text: '🔒 Locked' }
+      completed: { bg: 'bg-sky-100 border-sky-200', text: 'text-sky-700', label: 'Completed' },
+      unlocked: { bg: 'bg-slate-100 border-slate-200', text: 'text-slate-700', label: 'In Progress' },
+      locked: { bg: 'bg-slate-50 border-slate-100', text: 'text-slate-400', label: 'Locked' }
     };
 
     const config = statusConfig[status] || statusConfig.locked;
     
     return (
-      <span style={{
-        padding: '4px 12px',
-        borderRadius: '12px',
-        fontSize: '12px',
-        fontWeight: '600',
-        background: config.bg,
-        color: config.color,
-      }}>
-        {config.text}
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider border ${config.bg} ${config.text}`}>
+        {config.label}
       </span>
     );
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return '#10b981'; // Green
-    if (score >= 60) return '#f59e0b'; // Orange
-    if (score > 0) return '#ef4444';   // Red
-    return '#9ca3af';                  // Gray for no attempts
+    if (score >= 80) return 'text-sky-500 bg-sky-500';
+    if (score >= 60) return 'text-sky-400 bg-sky-400';
+    if (score > 0) return 'text-sky-300 bg-sky-300';
+    return 'text-slate-300 bg-slate-200';
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
+      <div className="flex justify-center items-center min-h-[80vh]">
+        <Loader2 className="animate-spin text-sky-500" size={48} />
       </div>
     );
   }
 
   if (error || !studentData) {
     return (
-      <div style={{ padding: '40px' }}>
+      <div className="max-w-2xl mx-auto py-20 text-center">
+        <ShieldAlert size={64} className="mx-auto text-rose-300 mb-6" />
+        <h2 className="text-2xl font-black text-slate-800 mb-2">Student Data Not Found</h2>
+        <p className="text-slate-500 font-medium mb-8">{error || 'The requested student data could not be loaded.'}</p>
         <button
           onClick={() => navigate('/admin/users')}
-          className="btn btn-secondary"
-          style={{ marginBottom: '20px' }}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
         >
-          ← Back to Users
+          <ArrowLeft size={18} /> Back to Users
         </button>
-        <div className="alert alert-error">
-          {error || 'Student data not found'}
-        </div>
       </div>
     );
   }
@@ -102,121 +95,124 @@ export default function StudentScoresPage() {
   const stats = calculateStats();
 
   return (
-    <div style={{ padding: '40px' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-5xl mx-auto">
+      
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <button
-          onClick={() => navigate('/admin/users')}
-          className="btn btn-secondary"
-          style={{ marginBottom: '16px' }}
-        >
-          ← Back to Users
-        </button>
-        <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#111827', marginBottom: '8px' }}>
-          Student Performance Report
-        </h1>
-        <p style={{ fontSize: '18px', color: '#6b7280' }}>
-          {studentData.user?.username || 'Student'}
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-10">
+        <div>
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-sky-600 mb-4 transition-colors"
+          >
+            <ArrowLeft size={16} /> Back to Users
+          </button>
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight mb-1">
+            <BarChart3 className="text-sky-500" size={32} />
+            Performance Report
+          </h1>
+          <p className="text-slate-500 font-medium">
+            Detailed learning progress for <span className="font-bold text-slate-800">@{studentData.user?.username || 'Student'}</span>
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-3" style={{ marginBottom: '40px' }}>
-        <div className="card" style={{ textAlign: 'center', padding: '24px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '8px' }}>⭐</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>
-            {stats.avgScore}%
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+        <div className="glass-card bg-white p-6 rounded-2xl flex items-center gap-5 border border-slate-200">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-sky-50 text-sky-500 shrink-0">
+            <Award size={28} />
           </div>
-          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>
-            Average Score
-          </div>
-        </div>
-
-        <div className="card" style={{ textAlign: 'center', padding: '24px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '8px' }}>✅</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>
-            {stats.completedLevels}/{stats.totalLevels}
-          </div>
-          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>
-            Completed Levels
+          <div>
+            <div className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">{stats.avgScore}%</div>
+            <div className="text-xs font-black text-slate-400 uppercase tracking-widest">Average Score</div>
           </div>
         </div>
 
-        <div className="card" style={{ textAlign: 'center', padding: '24px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '8px' }}>📈</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>
-            {stats.totalLevels > 0 ? Math.round((stats.completedLevels / stats.totalLevels) * 100) : 0}%
+        <div className="glass-card bg-white p-6 rounded-2xl flex items-center gap-5 border border-slate-200">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-sky-50 text-sky-500 shrink-0">
+            <Target size={28} />
           </div>
-          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>
-            Progress Rate
+          <div>
+            <div className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">
+              {stats.completedLevels}<span className="text-slate-300 text-xl">/{stats.totalLevels}</span>
+            </div>
+            <div className="text-xs font-black text-slate-400 uppercase tracking-widest">Completed Levels</div>
+          </div>
+        </div>
+
+        <div className="glass-card bg-white p-6 rounded-2xl flex items-center gap-5 border border-slate-200">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-sky-50 text-sky-500 shrink-0">
+            <TrendingUp size={28} />
+          </div>
+          <div>
+            <div className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">
+              {stats.totalLevels > 0 ? Math.round((stats.completedLevels / stats.totalLevels) * 100) : 0}%
+            </div>
+            <div className="text-xs font-black text-slate-400 uppercase tracking-widest">Progress Rate</div>
           </div>
         </div>
       </div>
 
       {/* Scores Table */}
-      <div className="card">
-        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>
-          Level-by-Level Performance
-        </h2>
-        <div className="table-container">
-          <table>
+      <div className="glass-card bg-white border border-slate-200 overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+          <h2 className="text-lg font-black text-slate-900">Level-by-Level Breakdown</h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead>
-              <tr>
-                <th>Level</th>
-                <th>Status</th>
-                <th>High Score</th>
-                <th>Performance</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200">
+                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Level</th>
+                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">High Score</th>
+                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest w-full">Performance</th>
               </tr>
             </thead>
-            <tbody>
-              {studentData.levelProgress && studentData.levelProgress.map((level) => (
-                <tr key={level.levelNumber}>
-                  <td style={{ fontWeight: '600' }}>
-                    Level {level.levelNumber}
-                  </td>
-                  <td>
-                    {getStatusBadge(level.status)}
-                  </td>
-                  <td>
-                    <span style={{
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      color: getScoreColor(level.highScore)
-                    }}>
-                      {level.highScore}%
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ width: '100%', maxWidth: '200px' }}>
-                      <div style={{
-                        width: '100%',
-                        height: '8px',
-                        background: '#e5e7eb',
-                        borderRadius: '4px',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${level.highScore}%`,
-                          height: '100%',
-                          background: getScoreColor(level.highScore),
-                          transition: 'width 0.3s ease'
-                        }} />
+            <tbody className="divide-y divide-slate-100">
+              {studentData.levelProgress && studentData.levelProgress.map((level) => {
+                const colorClass = getScoreColor(level.highScore);
+                const textColorClass = colorClass.split(' ')[0];
+                const bgColorClass = colorClass.split(' ')[1];
+
+                return (
+                  <tr key={level.levelNumber} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="font-bold text-slate-900">Level {level.levelNumber}</div>
+                    </td>
+                    <td className="px-6 py-5">
+                      {getStatusBadge(level.status)}
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className={`text-xl font-black ${textColorClass}`}>
+                        {level.highScore}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-5 w-full min-w-[200px]">
+                      <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${level.highScore}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className={`h-full rounded-full ${bgColorClass}`}
+                        />
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Additional Info */}
       {studentData.updatedAt && (
-        <div style={{ marginTop: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
-          Last updated: {new Date(studentData.updatedAt).toLocaleString()}
+        <div className="mt-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+          Last updated: {new Date(studentData.updatedAt).toLocaleString('id-ID', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          })}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -10,6 +10,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft, User, Mail, Calendar, Trophy, Target,
   Lock, Eye, EyeOff, Loader2, Save, LogOut, Zap, TrendingUp, Award, Download
@@ -48,7 +49,7 @@ export default function StudentProfilePage() {
       setLoading(false);
     } catch (err) {
       console.error('Failed to load profile:', err);
-      // Fallback data saat API error
+      // Fallback data
       setProfileData({
         username: user?.username || 'User',
         email: 'user@saka.local',
@@ -57,7 +58,6 @@ export default function StudentProfilePage() {
         averageScore: 0,
         streak: 0,
       });
-      // Hanya show toast error jika bukan 404
       if (err.status !== 404) {
         showError(err.message || 'Gagal memuat profil');
       }
@@ -68,7 +68,6 @@ export default function StudentProfilePage() {
   const fetchProgress = async () => {
     try {
       const response = await progressAPI.getProgress();
-      // Transform data untuk charts
       const chartData = response.data?.levelProgress?.map((level, idx) => ({
         name: `Level ${level.levelNumber}`,
         score: level.highScore || 0,
@@ -130,434 +129,14 @@ export default function StudentProfilePage() {
     navigate('/');
   };
 
-  const styles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-    :root {
-      --primary: #0ea5e9;
-      --slate-900: #0f172a;
-      --slate-600: #475569;
-      --slate-300: #cbd5e1;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    .profile-page {
-      min-height: 100vh;
-      background: #f8fafc;
-      padding: 24px;
-    }
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 40px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .profile-back-btn {
-      background: white;
-      border: 1px solid #e2e8f0;
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #475569;
-    }
-
-    .profile-back-btn:hover {
-      background: #f1f5f9;
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .profile-title {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--slate-900);
-      letter-spacing: -0.04em;
-    }
-
-    .profile-container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .profile-card {
-      background: white;
-      border-radius: 24px;
-      padding: 32px;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
-    }
-
-    .card-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--slate-900);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .profile-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    .info-item {
-      padding: 16px;
-      background: #f8fafc;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .info-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      letter-spacing: 0.05em;
-    }
-
-    .info-value {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--slate-900);
-      word-break: break-all;
-    }
-
-    .badge-stats {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .stat-badge {
-      flex: 1;
-      padding: 16px;
-      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-      color: white;
-      border-radius: 16px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 800;
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0.85;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--slate-600);
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px 16px 12px 16px;
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 14px;
-      color: var(--slate-900);
-      transition: all 0.2s;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: white;
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
-    }
-
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #94a3b8;
-      display: flex;
-      padding: 4px;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
-
-    .btn-save {
-      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-      color: white;
-    }
-
-    .btn-save:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
-    }
-
-    .btn-logout {
-      background: #fef2f2;
-      color: #e11d48;
-      border: 1px solid #fee2e2;
-    }
-
-    .btn-logout:hover:not(:disabled) {
-      background: #ffebee;
-    }
-
-    .success-message {
-      background: #f0fdf4;
-      border: 1px solid #dcfce7;
-      color: #166534;
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .loading-skeleton {
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    @media (max-width: 480px) {
-      .profile-card {
-        padding: 20px;
-      }
-
-      .profile-info-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-actions {
-        flex-direction: column;
-      }
-    }
-
-    .charts-section {
-      margin-top: 40px;
-      padding: 24px;
-      background: white;
-      border-radius: 24px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    }
-
-    .achievements-section {
-      margin-top: 40px;
-      padding: 24px;
-      background: white;
-      border-radius: 24px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    }
-
-    .achievements-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .charts-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--slate-900);
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 32px;
-    }
-
-    .chart-container {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 20px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .chart-label {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--slate-600);
-      margin-bottom: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .chart-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: #94a3b8;
-      text-align: center;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
-      margin-top: 24px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-      padding: 20px;
-      border-radius: 16px;
-      color: white;
-      text-align: center;
-    }
-
-    .stat-card.secondary {
-      background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
-    }
-
-    .stat-card.success {
-      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    }
-
-    .stat-number {
-      font-size: 28px;
-      font-weight: 800;
-      display: block;
-    }
-
-    .stat-name {
-      font-size: 12px;
-      font-weight: 700;
-      opacity: 0.9;
-      margin-top: 8px;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 768px) {
-      .charts-section {
-        padding: 16px;
-      }
-
-      .achievements-section {
-        padding: 16px;
-      }
-
-      .charts-grid {
-        gap: 24px;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .achievements-grid {
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-      }
-    }
-
-    @media (max-width: 480px) {
-      .charts-section {
-        padding: 12px;
-        margin-top: 20px;
-      }
-
-      .charts-title {
-        font-size: 16px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `;
-
   if (loading) {
     return (
-      <div className="profile-page">
-        <style>{styles}</style>
-        <div className="profile-header">
-          <div className="profile-back-btn" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-            <ArrowLeft size={20} />
+      <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-12 h-12 bg-slate-200 rounded-xl animate-pulse"></div>
+            <div className="w-48 h-8 bg-slate-200 rounded-lg animate-pulse"></div>
           </div>
-          <h1 className="profile-title">Profil Saya</h1>
-        </div>
-        <div className="profile-container">
           <SkeletonCard count={3} />
         </div>
       </div>
@@ -572,301 +151,270 @@ export default function StudentProfilePage() {
       })
     : 'N/A';
 
-  return (
-    <div className="profile-page">
-      <style>{styles}</style>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
 
-      <div className="profile-header">
-        <button className="profile-back-btn" onClick={() => navigate('/levels')}>
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="profile-title">Profil Saya</h1>
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
+  return (
+    <div className="relative min-h-screen bg-slate-50 bg-grid-pattern pb-20">
+      
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-sky-200/40 mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div className="absolute top-40 left-0 w-96 h-96 rounded-full bg-emerald-200/40 mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
       </div>
 
-      <div className="profile-container">
-        {/* User Info Card */}
-        <div className="profile-card">
-          <div className="card-title">
-            <User size={20} />
-            Informasi Akun
-          </div>
-          <div className="profile-info-grid">
-            <div className="info-item">
-              <div className="info-label">Username</div>
-              <div className="info-value">{profileData?.username}</div>
-            </div>
-            <div className="info-item">
-              <div className="info-label">Email</div>
-              <div className="info-value">{profileData?.email || 'Belum diset'}</div>
-            </div>
-            <div className="info-item">
-              <div className="info-label">Bergabung</div>
-              <div className="info-value" style={{ fontSize: '14px' }}>{joinDate}</div>
-            </div>
-            <div className="info-item">
-              <div className="info-label">Status</div>
-              <div className="info-value" style={{ color: '#10b981' }}>Aktif</div>
-            </div>
-          </div>
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-10">
+        
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-4 mb-10"
+        >
+          <button 
+            onClick={() => navigate('/levels')}
+            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border-2 border-slate-200 rounded-xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+          >
+            <ArrowLeft size={24} strokeWidth={2.5} />
+          </button>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Profil Saya</h1>
+        </motion.div>
 
-          <div className="badge-stats">
-            <div className="stat-badge" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-              <div className="stat-value">{profileData?.totallevelsCompleted || 0}</div>
-              <div className="stat-label">Level Selesai</div>
-            </div>
-            <div className="stat-badge" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
-              <div className="stat-value">{profileData?.averageScore || 0}%</div>
-              <div className="stat-label">Rata-rata Skor</div>
-            </div>
-            <div className="stat-badge" style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}>
-              <div className="stat-value">{profileData?.streak || 0}</div>
-              <div className="stat-label">Hari Berturut</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Password Change Card */}
-        <div className="profile-card">
-          <div className="card-title">
-            <Lock size={20} />
-            Keamanan
-          </div>
-
-          <form onSubmit={handlePasswordChange}>
-            <div className="form-group">
-              <label>Password Saat Ini</label>
-              <div className="input-wrapper">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({
-                    ...passwordForm,
-                    currentPassword: e.target.value
-                  })}
-                  placeholder="Masukkan password saat ini"
-                  required
-                  disabled={updating}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Password Baru</label>
-              <div className="input-wrapper">
-                <input
-                  type={showNewPassword ? 'text' : 'password'}
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({
-                    ...passwordForm,
-                    newPassword: e.target.value
-                  })}
-                  placeholder="Masukkan password baru (min. 6 karakter)"
-                  required
-                  disabled={updating}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                >
-                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Konfirmasi Password</label>
-              <div className="input-wrapper">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm({
-                    ...passwordForm,
-                    confirmPassword: e.target.value
-                  })}
-                  placeholder="Ulangi password baru"
-                  required
-                  disabled={updating}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="submit"
-                className="btn btn-save"
-                disabled={updating || !passwordForm.currentPassword || !passwordForm.newPassword}
-              >
-                {updating ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                {updating ? 'Menyimpan...' : 'Simpan Password'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-logout"
-                onClick={handleLogout}
-                disabled={updating}
-              >
-                <LogOut size={16} />
-                Keluar
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Export Section */}
-        <div className="profile-card">
-          <div className="card-title">
-            <Download size={20} />
-            Ekspor Data
-          </div>
-          <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '16px' }}>
-            Unduh progress dan pencapaian Anda dalam format CSV atau PDF
-          </p>
-          <ExportButton exportType="progress-csv" variant="default" />
-        </div>
-
-        {/* Progress Visualization Charts */}
-        {progressData && progressData.levelProgress.length > 0 && (
-          <div className="charts-section">
-            <h2 className="charts-title">
-              <TrendingUp size={20} />
-              Progress Kamu
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
+          
+          {/* User Info Card */}
+          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
+            <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
+              <User size={24} className="text-sky-500" />
+              Informasi Akun
             </h2>
-
-            {/* Stats Cards */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <span className="stat-number">{profileData?.totallevelsCompleted || 0}</span>
-                <span className="stat-name">Level Selesai</span>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Username</p>
+                <p className="text-lg font-black text-slate-900 truncate">{profileData?.username}</p>
               </div>
-              <div className="stat-card secondary">
-                <span className="stat-number">{profileData?.averageScore || 0}%</span>
-                <span className="stat-name">Rata-rata Skor</span>
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Email</p>
+                <p className="text-base font-bold text-slate-900 truncate">{profileData?.email || 'Belum diset'}</p>
               </div>
-              <div className="stat-card success">
-                <span className="stat-number">{profileData?.streak || 0}</span>
-                <span className="stat-name">Hari Beruntun</span>
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Bergabung</p>
+                <p className="text-sm font-bold text-slate-900">{joinDate}</p>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Status</p>
+                <p className="text-lg font-black text-emerald-600">Aktif</p>
               </div>
             </div>
 
-            {/* Charts Grid */}
-            <div className="charts-grid" style={{ marginTop: '32px' }}>
-              {/* Score by Level Chart */}
-              <div className="chart-container">
-                <p className="chart-label">Score Per Level</p>
-                {progressData.levelProgress.every(l => l.score === 0) ? (
-                  <div className="chart-empty">
-                    <Award size={32} style={{ opacity: 0.3 }} />
-                    <p>Belum ada score. Mulai kuis untuk melihat progress!</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-emerald-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-4xl font-black mb-1">{profileData?.totallevelsCompleted || 0}</span>
+                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Level Selesai</span>
+              </div>
+              <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-amber-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-4xl font-black mb-1">{profileData?.averageScore || 0}%</span>
+                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Rata-rata Skor</span>
+              </div>
+              <div className="bg-gradient-to-br from-sky-400 to-sky-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-sky-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-4xl font-black mb-1">{profileData?.streak || 0}</span>
+                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Hari Beruntun</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Progress Chart Card */}
+          {progressData && progressData.levelProgress.length > 0 && (
+            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
+              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
+                <TrendingUp size={24} className="text-indigo-500" />
+                Grafik Progres
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Score Per Level</p>
+                  {progressData.levelProgress.every(l => l.score === 0) ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                      <Award size={32} className="mb-2 opacity-50" />
+                      <p className="text-sm font-medium">Belum ada skor tercatat.</p>
+                    </div>
+                  ) : (
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={progressData.levelProgress}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                          <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                          <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          <Bar dataKey="score" fill="#0ea5e9" radius={[6, 6, 0, 0]} barSize={32} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Tren Pembelajaran</p>
+                  {progressData.levelProgress.every(l => l.score === 0) ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-slate-400">
+                      <TrendingUp size={32} className="mb-2 opacity-50" />
+                      <p className="text-sm font-medium">Belum ada tren tercatat.</p>
+                    </div>
+                  ) : (
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={progressData.levelProgress}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                          <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                          <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`${value}%`, 'Score']} />
+                          <Line type="monotone" dataKey="score" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#059669' }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Achievements */}
+          {achievements && (
+            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
+              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
+                <Trophy size={24} className="text-amber-500" />
+                Prestasi & Lencana
+              </h2>
+              
+              {achievements.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {achievements.map((achievement) => (
+                    <AchievementBadge key={achievement._id} achievement={achievement} isUnlocked={true} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4">
+                    <Trophy size={32} className="text-slate-400" />
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={progressData.levelProgress}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="name" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: '#fff', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Bar dataKey="score" fill="#0ea5e9" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+                  <h3 className="text-lg font-bold text-slate-700 mb-1">Belum Ada Prestasi</h3>
+                  <p className="text-sm text-slate-500">Selesaikan kuis dengan skor sempurna untuk membuka lencana pertamamu!</p>
+                </div>
+              )}
+            </motion.div>
+          )}
 
-              {/* Level Status Chart */}
-              <div className="chart-container">
-                <p className="chart-label">Status Level</p>
-                {progressData.levelProgress.length === 0 ? (
-                  <div className="chart-empty">
-                    <TrendingUp size={32} style={{ opacity: 0.3 }} />
-                    <p>Data tidak tersedia</p>
+          {/* Settings & Export */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
+              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
+                <Lock size={24} className="text-rose-500" />
+                Keamanan
+              </h2>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Password Saat Ini</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      className="w-full pl-4 pr-12 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-sky-500 transition-colors"
+                      required disabled={updating}
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 text-slate-400 hover:text-slate-600">
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={progressData.levelProgress}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="name" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: '#fff', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px'
-                        }}
-                        formatter={(value) => {
-                          if (typeof value === 'string') return value;
-                          return value ? value + '%' : '0%';
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="score" 
-                        stroke="#06b6d4" 
-                        strokeWidth={2}
-                        dot={{ fill: '#0ea5e9', r: 5 }}
-                        activeDot={{ r: 7 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      className="w-full pl-4 pr-12 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-sky-500 transition-colors"
+                      required disabled={updating}
+                    />
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-3 text-slate-400 hover:text-slate-600">
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Konfirmasi Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      className="w-full pl-4 pr-12 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-sky-500 transition-colors"
+                      required disabled={updating}
+                    />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-3 text-slate-400 hover:text-slate-600">
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="submit" disabled={updating || !passwordForm.currentPassword || !passwordForm.newPassword} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50">
+                    {updating ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                    Simpan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 flex flex-col">
+              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
+                <Download size={24} className="text-emerald-500" />
+                Data & Akun
+              </h2>
+              
+              <div className="flex-1">
+                <p className="text-slate-600 mb-4">Unduh seluruh laporan progres belajar dan pencapaian Anda dalam format CSV.</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center">
+                      <TrendingUp size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">Laporan Progres</p>
+                      <p className="text-xs text-slate-500">Format .csv (Spreadsheet)</p>
+                    </div>
+                  </div>
+                  <ExportButton exportType="progress-csv" variant="default" />
+                </div>
               </div>
-            </div>
+
+              <div className="mt-auto pt-6 border-t border-slate-200">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-rose-50 border-2 border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-colors"
+                >
+                  <LogOut size={18} />
+                  Keluar dari Akun
+                </button>
+              </div>
+            </motion.div>
           </div>
-        )}
-
-        {/* Achievements Section */}
-        {achievements && (
-          <div className="achievements-section">
-            <h2 className="charts-title">
-              <Trophy size={20} />
-              Prestasi Saya
-            </h2>
-
-            {achievements.length > 0 ? (
-              <div className="achievements-grid">
-                {achievements.map((achievement) => (
-                  <AchievementBadge
-                    key={achievement._id}
-                    achievement={achievement}
-                    isUnlocked={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="chart-empty">
-                <Trophy size={32} style={{ opacity: 0.3 }} />
-                <p>Belum ada prestasi. Selesaikan level untuk membuka prestasi!</p>
-              </div>
-            )}
-
-            <div style={{ marginTop: '20px', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
-              <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-                💡 Tip: Selesaikan level dengan skor tinggi untuk membuka berbagai prestasi menarik!
-              </p>
-            </div>
-          </div>
-        )}
+        </motion.div>
       </div>
     </div>
   );
 }
-

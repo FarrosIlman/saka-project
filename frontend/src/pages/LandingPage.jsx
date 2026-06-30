@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 import { 
   Rocket, BookOpen, Mic2, BarChart3, 
-  Gamepad2, LayoutDashboard, Palette, 
-  ChevronRight, Sparkles
+  Gamepad2, LayoutDashboard, 
+  ChevronRight, Target, Sparkles
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -19,305 +20,193 @@ export default function LandingPage() {
     }
   };
 
-  const styles = `
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-    :root {
-      --primary: #0ea5e9;
-      --slate-900: #0f172a;
-      --slate-600: #475569;
-      --slate-200: #e2e8f0;
-      --glass-bg: rgba(255, 255, 255, 0.6);
-      --glass-border: rgba(255, 255, 255, 0.8);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
     }
+  };
 
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, opacity: 1,
+      transition: { duration: 0.5 }
     }
-
-    body {
-      background: #fcfcfd;
-      color: var(--slate-900);
-      overflow-x: hidden;
-    }
-
-    .bg-decoration {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -1; pointer-events: none;
-    }
-    .orb {
-      position: absolute; border-radius: 50%; filter: blur(120px);
-      opacity: 0.3; animation: drift 15s infinite alternate;
-    }
-    .orb-1 { width: 600px; height: 600px; background: #bae6fd; top: -15%; left: -10%; }
-    .orb-2 { width: 500px; height: 500px; background: #e0e7ff; bottom: -10%; right: -5%; }
-
-    @keyframes drift {
-      from { transform: translate(0, 0); }
-      to { transform: translate(40px, 40px); }
-    }
-
-    .hero-section {
-      padding: 100px 24px 60px;
-      text-align: center;
-      display: flex; flex-direction: column; align-items: center;
-    }
-
-    .hero-tag {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 16px; background: #fff;
-      border: 1px solid var(--slate-200); border-radius: 100px;
-      font-size: 12px; font-weight: 600; color: var(--slate-600);
-      margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    }
-
-    .hero-title {
-      font-size: clamp(32px, 8vw, 72px);
-      font-weight: 800; line-height: 1.1;
-      letter-spacing: -0.05em; color: var(--slate-900);
-      margin-bottom: 12px;
-    }
-
-    .hero-subtitle {
-      font-size: clamp(14px, 2vw, 20px);
-      font-weight: 600;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 24px;
-      padding: 0 20px;
-    }
-
-    .hero-description {
-      font-size: clamp(16px, 2vw, 18px); color: var(--slate-600);
-      max-width: 600px; margin: 0 auto 40px;
-      line-height: 1.6;
-    }
-
-    .btn-main {
-      padding: 14px 32px; border-radius: 14px;
-      font-size: 15px; font-weight: 700; cursor: pointer;
-      transition: all 0.2s; display: flex;
-      align-items: center; gap: 10px; border: none;
-    }
-
-    .btn-primary { background: var(--slate-900); color: white; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-
-    .btn-outline {
-      background: #fff; color: var(--slate-900);
-      border: 1px solid var(--slate-200);
-    }
-
-    /* Stats Bar - Mobile Friendly */
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      justify-content: center; 
-      gap: 20px;
-      padding: 40px 24px; background: var(--glass-bg);
-      backdrop-filter: blur(10px); border-y: 1px solid var(--slate-200);
-    }
-
-    .stat-card { text-align: center; }
-    .stat-val { display: block; font-size: clamp(18px, 3vw, 24px); font-weight: 800; color: var(--primary); }
-    .stat-lbl { font-size: 10px; color: var(--slate-600); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
-
-    .section { padding: 60px 24px; max-width: 1200px; margin: 0 auto; }
-
-    /* Features Grid Responsive */
-    .grid-features {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .f-card {
-      padding: 30px; background: #fff;
-      border: 1px solid #f1f5f9; border-radius: 24px;
-      transition: all 0.3s ease;
-      display: flex; flex-direction: column; height: 100%;
-    }
-
-    .f-card:hover {
-      border-color: var(--primary); transform: translateY(-6px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.04);
-    }
-
-    .f-icon {
-      width: 44px; height: 44px; background: #f0f9ff;
-      color: var(--primary); border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .f-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-    .f-card p { font-size: 14px; color: var(--slate-600); line-height: 1.5; }
-
-    .audience-box {
-      background: var(--glass-bg);
-      backdrop-filter: blur(25px) saturate(160%);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px; padding: 60px 40px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
-    }
-
-    .a-card h3 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
-    .a-card p { color: var(--slate-600); font-size: 15px; line-height: 1.6; }
-
-    footer {
-      text-align: center; padding: 40px 24px; color: var(--slate-600);
-      font-size: 12px; font-weight: 500; border-top: 1px solid #f1f5f9;
-    }
-
-    /* MEDIA QUERIES FOR MOBILE RESPONSIVENESS */
-    @media (max-width: 1024px) { 
-      .grid-features { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 768px) { 
-      .hero-section { padding-top: 60px; }
-      .grid-features { grid-template-columns: 1fr; }
-      .audience-box { grid-template-columns: 1fr; border-radius: 24px; padding: 40px 24px; gap: 30px; }
-      .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 30px; }
-      
-      .btn-main { width: 100%; justify-content: center; }
-      .cta-group { flex-direction: column; width: 100%; max-width: 300px; }
-    }
-
-    @media (max-width: 480px) {
-      .stats-bar { grid-template-columns: 1fr; }
-      .hero-tag { font-size: 10px; }
-      .hero-subtitle { letter-spacing: 0.05em; }
-    }
-  `;
+  };
 
   return (
-    <>
-      <style>{styles}</style>
+    <div className="relative min-h-screen bg-slate-50 overflow-hidden font-sans">
       
-      <div className="bg-decoration">
-        <div className="orb orb-1"></div>
-        <div className="orb orb-2"></div>
+      {/* Subtle Background Elements */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-grid-pattern opacity-30"></div>
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-slate-200/50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/3 -translate-x-1/4"></div>
       </div>
 
-      <div className="landing-page">
-        {/* HERO */}
-        <section className="hero-section">
-          <div className="hero-tag">
-            <Sparkles size={14} style={{color: '#0ea5e9'}} />
-            <span>SAKA &bull; Speaking Activity Platform</span>
-          </div>
-          
-          <h1 className="hero-title">SAKA Project</h1>
-          <h2 className="hero-subtitle">Smart Application for Kid's Speaking Activity</h2>
-          
-          <p className="hero-description">
-            Platform edukasi digital untuk mengelola kegiatan berbicara Bahasa Inggris secara interaktif antara Guru dan Siswa.
-          </p>
+      {/* Hero Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center lg:pt-32">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-bold text-sky-600 mb-8"
+        >
+          <Sparkles size={16} />
+          <span className="uppercase tracking-wide">Platform Belajar Masa Depan</span>
+        </motion.div>
 
-          <div className="cta-group" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button onClick={handleGetStarted} className="btn-main btn-primary">
-              <Rocket size={18} />
-              {user ? 'Dashboard' : 'Mulai Sekarang'}
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6"
+        >
+          Fasih <span className="text-sky-600">Bahasa Inggris</span> <br className="hidden md:block" /> Lewat SAKA
+        </motion.h1>
+
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-6 max-w-2xl mx-auto text-lg sm:text-xl text-slate-500 mb-10 font-medium leading-relaxed"
+        >
+          Smart Application for Kid's Speaking Activity hadir dengan teknologi interaktif untuk membuat belajar bahasa Inggris menjadi efektif dan menyenangkan.
+        </motion.p>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+        >
+          <button 
+            onClick={handleGetStarted} 
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-sky-600 rounded-full hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-600/20 transition-all duration-300 w-full sm:w-auto"
+          >
+            {user ? 'Lanjut Misi Belajar' : 'Mulai Petualangan'}
+            <Rocket size={18} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+          
+          {!user && (
+            <button 
+              onClick={() => navigate('/login')}
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 w-full sm:w-auto"
+            >
+              Masuk Akun
+              <ChevronRight size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
             </button>
-            {!user && (
-              <button className="btn-main btn-outline" onClick={() => navigate('/login')}>
-                Masuk
-              </button>
-            )}
-          </div>
-        </section>
+          )}
+        </motion.div>
+      </div>
 
-        {/* STATS BAR */}
-        <div className="stats-bar">
-          <StatItem val="Interactive" lbl="Method" />
-          <StatItem val="Structured" lbl="Curriculum" />
-          <StatItem val="Real-time" lbl="Analysis" />
-          <StatItem val="Admin" lbl="Control" />
+      {/* Stats Bar */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 max-w-5xl mx-auto px-4 mt-4 mb-24"
+      >
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4 p-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          {[
+            { val: "AI-Powered", lbl: "Voice Recognition" },
+            { val: "Level 1-10", lbl: "Misi Bertahap" },
+            { val: "Gamified", lbl: "Sistem Reward" },
+            { val: "Real-time", lbl: "Analisis Progres" },
+          ].map((stat, idx) => (
+            <div key={idx} className="flex flex-col gap-1 pt-4 md:pt-0">
+              <span className="text-2xl font-black text-slate-800">{stat.val}</span>
+              <span className="text-xs font-bold text-sky-500 uppercase tracking-widest">{stat.lbl}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Features Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mb-20">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl tracking-tight mb-4">Kenapa Memilih SAKA?</h2>
+          <p className="text-base font-medium text-slate-500 max-w-2xl mx-auto">Dirancang menggunakan standar UI/UX modern untuk memberikan pengalaman belajar terbaik yang elegan dan fokus.</p>
         </div>
 
-        {/* FEATURES */}
-        <section className="section">
-          <div className="grid-features">
-            <FeatureCard 
-              icon={<BookOpen size={20}/>} 
-              title="Level Mastery" 
-              desc="Kurikulum bertingkat yang membantu siswa menguasai materi secara bertahap." 
-            />
-            <FeatureCard 
-              icon={<Mic2 size={20}/>} 
-              title="Speaking Lab" 
-              desc="Ruang latihan khusus untuk mengasah kelancaran pengucapan Bahasa Inggris." 
-            />
-            <FeatureCard 
-              icon={<Gamepad2 size={20}/>} 
-              title="Gamified Experience" 
-              desc="Meningkatkan motivasi belajar melalui sistem poin dan progres interaktif." 
-            />
-            <FeatureCard 
-              icon={<BarChart3 size={20}/>} 
-              title="Data Analytics" 
-              desc="Pantau grafik perkembangan kemampuan berbicara siswa secara real-time." 
-            />
-            <FeatureCard 
-              icon={<LayoutDashboard size={20}/>} 
-              title="Teacher Control" 
-              desc="Kelola distribusi materi dan pantau aktivitas kelas dalam satu dashboard." 
-            />
-            <FeatureCard 
-              icon={<Palette size={20}/>} 
-              title="Creative Content" 
-              desc="Materi pembelajaran visual yang dirancang khusus untuk usia sekolah." 
-            />
-          </div>
-        </section>
-
-        {/* AUDIENCE */}
-        <section className="section" style={{paddingTop: 0}}>
-          <div className="audience-box">
-            <div className="a-card">
-              <span style={{fontSize: '32px', marginBottom: '16px', display: 'block'}}>👦</span>
-              <h3>Student</h3>
-              <p>Selesaikan tantangan Speaking Activity dan lihat peningkatan kemampuan bicaramu di setiap level.</p>
-            </div>
-            <div className="a-card">
-              <span style={{fontSize: '32px', marginBottom: '16px', display: 'block'}}>👨‍🏫</span>
-              <h3>Admin / Guru</h3>
-              <p>Monitor hasil latihan siswa secara real-time dan kendalikan aktivitas kelas dalam satu panel.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* FINAL CTA */}
-        <section className="section" style={{textAlign: 'center', paddingBottom: '80px'}}>
-          <h2 style={{fontSize: '28px', fontWeight: 800, marginBottom: '32px'}}>Siap mulai belajar?</h2>
-          <button onClick={handleGetStarted} className="btn-main btn-primary" style={{margin: '0 auto', padding: '16px 48px'}}>
-            Coba SAKA Sekarang
-            <ChevronRight size={18} />
-          </button>
-        </section>
-
-        <footer>
-          &copy; 2026 SAKA System &bull; Pekalongan, Indonesia
-        </footer>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <FeatureCard 
+            icon={<BookOpen size={28}/>} 
+            title="Materi Terstruktur" 
+            desc="Kurikulum bertingkat yang membantu siswa menguasai materi secara bertahap layaknya menyelesaikan game." 
+          />
+          <FeatureCard 
+            icon={<Mic2 size={28}/>} 
+            title="Speaking Lab AI" 
+            desc="Latihan pengucapan interaktif dengan teknologi Speech Recognition untuk meningkatkan kepercayaan diri." 
+          />
+          <FeatureCard 
+            icon={<Gamepad2 size={28}/>} 
+            title="Gamifikasi Penuh" 
+            desc="Belajar serasa bermain! Kumpulkan XP, Streak harian, Lencana, dan taklukkan Leaderboard." 
+          />
+          <FeatureCard 
+            icon={<BarChart3 size={28}/>} 
+            title="Pantau Progres" 
+            desc="Grafik analitik real-time yang modern untuk memantau perkembangan nilai dan aktivitas secara akurat." 
+          />
+          <FeatureCard 
+            icon={<LayoutDashboard size={28}/>} 
+            title="Dashboard Admin" 
+            desc="Panel kontrol canggih bagi guru/admin untuk manajemen data siswa, level, dan melihat statistik kelas." 
+          />
+          <FeatureCard 
+            icon={<Target size={28}/>} 
+            title="Fokus Akurasi" 
+            desc="Algoritma penilaian kemiripan teks tingkat lanjut untuk memastikan jawaban siswa dinilai secara presisi." 
+          />
+        </motion.div>
       </div>
-    </>
+
+      {/* Footer CTA */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="relative z-20 max-w-5xl mx-auto px-4 mb-20"
+      >
+        <div className="bg-slate-900 rounded-[2.5rem] px-6 py-16 sm:px-12 sm:py-20 text-center relative overflow-hidden shadow-xl shadow-slate-900/10">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+          <div className="relative z-10">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight">Siap Memulai Petualangan?</h2>
+            <p className="text-slate-400 text-base mb-10 max-w-xl mx-auto font-medium">Bergabung sekarang dan jadikan proses belajar bahasa Inggris pengalaman yang tak terlupakan dan efektif.</p>
+            <button 
+              onClick={handleGetStarted}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-sky-500 text-white text-base font-bold rounded-full hover:bg-sky-400 hover:-translate-y-1 transition-all duration-300"
+            >
+              Mulai Sekarang Gratis <ChevronRight size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
-const StatItem = ({ val, lbl }) => (
-  <div className="stat-card">
-    <span className="stat-val">{val}</span>
-    <span className="stat-lbl">{lbl}</span>
-  </div>
-);
-
 const FeatureCard = ({ icon, title, desc }) => (
-  <div className="f-card">
-    <div className="f-icon">{icon}</div>
-    <h3>{title}</h3>
-    <p>{desc}</p>
-  </div>
+  <motion.div 
+    variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+    className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:border-sky-100 transition-all duration-300"
+  >
+    <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-6">
+      {icon}
+    </div>
+    <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
+    <p className="text-slate-500 text-sm font-medium leading-relaxed">{desc}</p>
+  </motion.div>
 );

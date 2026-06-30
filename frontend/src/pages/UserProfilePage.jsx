@@ -10,6 +10,7 @@ import { ExportButton } from '../components/ExportButton';
 import ProfileEditModal from '../components/modals/ProfileEditModal';
 import PasswordChangeModal from '../components/modals/PasswordChangeModal';
 import UserSettingsModal from '../components/modals/UserSettingsModal';
+import { motion } from 'framer-motion';
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
@@ -37,292 +38,173 @@ export default function UserProfilePage() {
     setActiveModal(null);
   };
 
-  const styles = `
-    .profile-page {
-      min-height: 100vh;
-      background: #f8fafc;
-      background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
-      background-size: 30px 30px;
-      padding: 40px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .profile-container {
-      width: 100%;
-      max-width: 850px;
-      position: relative;
-    }
-
-    /* HEADER TOP AREA - DIPASTIKAN MUNCUL */
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      margin-bottom: 30px;
-      z-index: 50;
-    }
-
-    .page-title-group {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    /* TOMBOL KEMBALI BULAT SEMPURNA */
-    .btn-back-profile {
-      background: white; 
-      border: 1.5px solid #e2e8f0; 
-      width: 54px; 
-      height: 54px; 
-      border-radius: 50%; 
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-      transition: all 0.3s ease;
-      color: #0f172a; 
-      padding: 0;
-      flex-shrink: 0;
-    }
-    .btn-back-profile:hover { border-color: #0ea5e9; color: #0ea5e9; transform: translateX(-4px); }
-
-    .page-label {
-      font-size: 22px;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.02em;
-    }
-
-    /* MAIN CARD */
-    .profile-card-main {
-      background: white;
-      border-radius: 32px;
-      border: 1px solid #f1f5f9;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
-      padding: 40px;
-      margin-bottom: 24px;
-      animation: slideUp 0.5s ease-out;
-    }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-    .profile-hero { display: flex; flex-direction: column; align-items: center; text-align: center; }
-
-    .avatar-wrapper { position: relative; margin-bottom: 16px; }
-    .profile-avatar {
-      width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
-      border: 4px solid white; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .role-badge {
-      position: absolute; bottom: 2px; right: 2px; background: #0ea5e9; color: white;
-      width: 36px; height: 36px; border-radius: 50%; border: 3px solid white;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .profile-name { font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 4px; }
-    
-    .member-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      background: #f0f9ff;
-      border: 1px solid #e0f2fe;
-      border-radius: 100px;
-      color: #0ea5e9;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 20px;
-    }
-
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; margin-bottom: 32px; }
-    .stat-pill {
-      background: white; padding: 24px 12px; border-radius: 24px;
-      display: flex; flex-direction: column; align-items: center;
-      border: 1px solid #f1f5f9; transition: 0.3s ease;
-    }
-    .stat-pill:hover { border-color: #e2e8f0; transform: translateY(-4px); }
-
-    .icon-box { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-    .bg-blue { background: #f0f9ff; color: #0ea5e9; }
-    .bg-amber { background: #fffbeb; color: #f59e0b; }
-    .bg-emerald { background: #ecfdf5; color: #10b981; }
-
-    .stat-value { font-size: 22px; font-weight: 800; color: #0f172a; }
-    .stat-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-
-    .action-group { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .pill-btn {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 20px; border-radius: 100px;
-      font-weight: 700; font-size: 14px; cursor: pointer; border: none; transition: 0.2s;
-    }
-    .btn-main { background: #0f172a; color: white; }
-    .btn-outline { background: white; border: 1.5px solid #e2e8f0; color: #475569; }
-
-    .section-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-    .section-subtitle { font-size: 13px; color: #94a3b8; font-weight: 500; margin-bottom: 20px; }
-
-    .info-item {
-      display: flex; align-items: center; gap: 16px; padding: 14px 18px;
-      background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9; margin-bottom: 12px;
-    }
-    .info-icon-circle { color: #64748b; }
-    .info-content .label { font-size: 11px; font-weight: 700; color: #94a3b8; margin: 0; text-transform: uppercase; }
-    .info-content .value { font-size: 14px; font-weight: 600; color: #334155; margin: 0; }
-
-    .bio-highlight {
-      background: #f8fafc; padding: 20px; border-radius: 20px; 
-      color: #475569; font-size: 14px; font-weight: 500; line-height: 1.6;
-      border: 1px solid #e2e8f0;
-    }
-
-    .animate-spin { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-    @media (max-width: 768px) {
-      .stats-row { grid-template-columns: 1fr; }
-      .header-top { justify-content: center; flex-direction: column; gap: 10px; }
-      .page-label { display: block; font-size: 20px; }
-    }
-  `;
-
   if (loading) return (
-    <div className="profile-page">
-      <style>{styles}</style>
-      <Loader2 className="animate-spin text-sky-500" size={40} style={{marginTop: '150px'}} />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <Loader2 className="animate-spin text-sky-500" size={48} />
     </div>
   );
 
   return (
-    <div className="profile-page">
-      <style>{styles}</style>
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="absolute inset-0 bg-mesh-pattern opacity-40 pointer-events-none z-0"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-sky-300/20 mix-blend-multiply filter blur-3xl animate-blob pointer-events-none z-0"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-300/20 mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000 pointer-events-none z-0"></div>
       
-      <div className="profile-container">
-        {/* HEADER TOP AREA */}
-        <div className="header-top">
-          <div className="page-title-group">
-            <button onClick={() => navigate('/levels')} className="btn-back-profile" title="Kembali">
-              <ArrowLeft size={28} /> 
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-12">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8"
+        >
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <button 
+              onClick={() => navigate(user.role === 'admin' ? '/admin/dashboard' : '/levels')} 
+              className="p-3 bg-white border-2 border-slate-200 rounded-full text-slate-700 hover:border-sky-400 hover:text-sky-500 shadow-sm transition-all active:scale-95"
+            >
+              <ArrowLeft size={24} strokeWidth={2.5} /> 
             </button>
-            <h2 className="page-label">My Profile</h2>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">My Profile</h2>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: '#94a3b8', fontSize: '12px', fontWeight: '700' }}>
-             <Sparkles size={14} color="#f59e0b" /> SAKA PERSONAL DASHBOARD
+          <div className="flex gap-2 items-center text-slate-500 font-bold text-sm tracking-widest uppercase bg-white/60 px-4 py-2 rounded-full border border-slate-200 backdrop-blur-md">
+            <Sparkles size={16} className="text-amber-500" /> SAKA Personal Dashboard
           </div>
-        </div>
+        </motion.div>
 
-        {/* HERO CARD */}
-        <div className="profile-card-main profile-hero">
-          <div className="avatar-wrapper">
-            <img 
-              src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
-              className="profile-avatar"
-              alt="Profile"
-            />
-            <div className="role-badge">
-              {user.role === 'admin' ? <Shield size={18} /> : <Star size={18} />}
+        {/* Hero Card */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+          className="glass-card bg-white/90 p-8 sm:p-12 mb-8 flex flex-col items-center text-center relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-sky-100/50 to-transparent"></div>
+          
+          <div className="relative mb-6 z-10">
+            <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-xl shadow-sky-500/20">
+              <img 
+                src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
+                className="w-full h-full rounded-full border-4 border-white object-cover bg-white"
+                alt="Profile"
+              />
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border-4 border-white text-white flex items-center justify-center shadow-lg">
+              {user.role === 'admin' ? <Shield size={18} fill="currentColor" /> : <Star size={18} fill="currentColor" />}
             </div>
           </div>
-          <h1 className="profile-name">{user.fullName || user.username}</h1>
           
-          <div className="member-badge">
-            <Award size={14} /> Member of SAKA Path
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-2 z-10">{user.fullName || user.username}</h1>
+          
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-sky-50 border border-sky-100 rounded-full text-sky-600 text-xs font-black uppercase tracking-widest mb-6 z-10">
+            <Award size={14} strokeWidth={3} /> Member of SAKA Path
           </div>
 
-          <p style={{ color: '#64748b', fontSize: '14px', fontWeight: '600', marginBottom: '24px', maxWidth: '450px' }}>
+          <p className="text-slate-500 font-medium max-w-md mx-auto mb-8 z-10">
             Lihat progres belajar dan atur akun kamu di sini. Terus belajar untuk hasil terbaik!
           </p>
           
-          <div className="action-group">
-            <button className="pill-btn btn-main" onClick={() => setActiveModal('edit')}>
-              <Edit3 size={16} /> Edit Profile
+          <div className="flex flex-wrap gap-3 justify-center z-10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all" onClick={() => setActiveModal('edit')}>
+              <Edit3 size={18} /> Edit Profile
             </button>
-            <button className="pill-btn btn-outline" onClick={() => setActiveModal('password')}>
-              <Lock size={16} /> Password
+            <button className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded-full font-bold hover:border-slate-300 hover:bg-slate-50 transition-all" onClick={() => setActiveModal('password')}>
+              <Lock size={18} /> Password
             </button>
-            <button className="pill-btn btn-outline" onClick={() => setActiveModal('settings')}>
-              <Settings size={16} /> Settings
+            <button className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded-full font-bold hover:border-slate-300 hover:bg-slate-50 transition-all" onClick={() => setActiveModal('settings')}>
+              <Settings size={18} /> Settings
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* STATS SECTION */}
+        {/* Stats Section (Students Only) */}
         {user.role === 'student' && (
-          <div className="stats-row">
-            <div className="stat-pill">
-              <div className="icon-box bg-blue">
-                <BookOpen size={24} />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          >
+            <div className="glass-card bg-white/90 p-6 flex flex-col items-center text-center hover:-translate-y-1 transition-transform group">
+              <div className="w-14 h-14 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <BookOpen size={28} />
               </div>
-              <div className="stat-value">{user.totallevelsCompleted || 0}</div>
-              <div className="stat-label">Levels Done</div>
+              <div className="text-4xl font-black text-slate-900 mb-1">{user.totallevelsCompleted || 0}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Levels Done</div>
             </div>
 
-            <div className="stat-pill">
-              <div className="icon-box bg-amber">
-                <Zap size={24} />
+            <div className="glass-card bg-white/90 p-6 flex flex-col items-center text-center hover:-translate-y-1 transition-transform group">
+              <div className="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Zap size={28} fill="currentColor" />
               </div>
-              <div className="stat-value">{user.totalXP || 0}</div>
-              <div className="stat-label">Total XP</div>
+              <div className="text-4xl font-black text-slate-900 mb-1">{user.totalXP || 0}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total XP</div>
             </div>
 
-            <div className="stat-pill">
-              <div className="icon-box bg-emerald">
-                <Trophy size={24} />
+            <div className="glass-card bg-white/90 p-6 flex flex-col items-center text-center hover:-translate-y-1 transition-transform group">
+              <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Trophy size={28} />
               </div>
-              <div className="stat-value">{user.averageScore || 0}%</div>
-              <div className="stat-label">Avg. Accuracy</div>
+              <div className="text-4xl font-black text-slate-900 mb-1">{user.averageScore || 0}%</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg. Accuracy</div>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* DETAILS GRID */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+        {/* Details Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           
-          <div className="profile-card-main">
-            <h3 className="section-title"><UserIcon size={18} className="info-icon-circle" /> Account Details</h3>
-            <p className="section-subtitle">Data akun pribadimu di SAKA.</p>
-            <div className="info-list">
-              <div className="info-item">
-                <Mail size={18} className="info-icon-circle" />
-                <div className="info-content">
-                  <p className="label">Registered Email</p>
-                  <p className="value">{user.email || 'Not set'}</p>
+          <div className="glass-card bg-white/90 p-8">
+            <h3 className="text-xl font-black text-slate-900 flex items-center gap-3 mb-2">
+              <UserIcon size={24} className="text-indigo-500" /> Account Details
+            </h3>
+            <p className="text-sm font-medium text-slate-500 mb-6">Data akun pribadimu di SAKA.</p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-sm">
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Registered Email</p>
+                  <p className="font-bold text-slate-700">{user.email || 'Not set'}</p>
                 </div>
               </div>
-              <div className="info-item">
-                <Calendar size={18} className="info-icon-circle" />
-                <div className="info-content">
-                  <p className="label">Joined Since</p>
-                  <p className="value">{new Date(user.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-sm">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Joined Since</p>
+                  <p className="font-bold text-slate-700">
+                    {new Date(user.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="profile-card-main">
-            <h3 className="section-title"><Award size={18} className="info-icon-circle" /> About Me</h3>
-            <p className="section-subtitle">Bio singkat mengenai belajarmu.</p>
+          <div className="glass-card bg-white/90 p-8 flex flex-col">
+            <h3 className="text-xl font-black text-slate-900 flex items-center gap-3 mb-2">
+              <Award size={24} className="text-rose-500" /> About Me
+            </h3>
+            <p className="text-sm font-medium text-slate-500 mb-6">Bio singkat mengenai belajarmu.</p>
+            
             {user.bio ? (
-              <div className="bio-highlight">
+              <div className="flex-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 font-medium italic mb-6">
                 "{user.bio}"
               </div>
             ) : (
-              <p style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '10px' }}>Belum menambahkan bio.</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 mb-6 min-h-[120px]">
+                <p className="font-bold">Belum ada bio.</p>
+                <p className="text-sm">Tambahkan bio di pengaturan profil.</p>
+              </div>
             )}
             
-            <div style={{ marginTop: '20px' }}>
+            <div className="mt-auto">
               <ExportButton exportType={user.role === 'admin' ? 'users-csv' : 'progress-csv'} variant="default" />
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </div>
 
       {activeModal === 'edit' && <ProfileEditModal user={user} onClose={() => setActiveModal(null)} onUpdate={handleProfileUpdate} />}

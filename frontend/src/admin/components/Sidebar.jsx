@@ -11,7 +11,9 @@ import {
   GraduationCap,
   ChevronRight,
   X,
+  Sparkles
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Sidebar({ isOpen, closeSidebar }) {
   const { logout } = useAuth();
@@ -22,7 +24,6 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     if (window.innerWidth <= 768) closeSidebar();
   };
 
-  // --- FUNGSI LOGOUT ADMIN DENGAN CONFIRMATION ---
   const handleAdminLogout = () => {
     setShowLogoutConfirm(true);
   };
@@ -33,264 +34,134 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     success('Berhasil keluar dari Panel Admin. Sampai jumpa!');
   };
 
-  const styles = `
-    .sidebar {
-      width: 280px;
-      background: #ffffff;
-      padding: 30px 20px;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      border-right: 1px solid #f1f5f9;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  const navLinkClass = ({ isActive }) =>
+    `relative flex items-center justify-between px-4 py-3 mb-1.5 rounded-2xl text-sm font-bold transition-all duration-300 group ${
+      isActive
+        ? "bg-sky-50 text-sky-600 shadow-sm"
+        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+    }`;
 
-    .nav-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      margin-bottom: 4px;
-      border-radius: 12px;
-      color: #64748b;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-
-    .nav-item:hover {
-      color: #0ea5e9;
-      background: #f0f9ff;
-    }
-
-    .nav-item.active {
-      color: #0ea5e9;
-      background: #f0f9ff;
-    }
-
-    /* Indikator vertikal kecil untuk menu aktif */
-    .nav-item.active::before {
-      content: "";
-      position: absolute;
-      left: -20px;
-      top: 20%;
-      height: 60%;
-      width: 4px;
-      background: #0ea5e9;
-      border-radius: 0 4px 4px 0;
-    }
-
-    .chevron {
-      opacity: 0;
-      transition: transform 0.3s, opacity 0.3s;
-    }
-
-    .nav-item.active .chevron {
-      opacity: 1;
-      transform: translateX(2px);
-    }
-
-    .nav-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin: 24px 0 12px 12px;
-      display: block;
-    }
-
-    .logout-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 14px 16px;
-      background: #fff1f2;
-      color: #e11d48;
-      border: 1px solid rgba(225, 29, 72, 0.05);
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      transition: all 0.2s;
-      margin-top: auto;
-    }
-
-    .logout-btn:hover {
-      background: #ffe4e6;
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed !important;
-        left: -100vw;
-        top: 0 !important;
-        width: 280px;
-        height: 100vh;
-        z-index: 999;
-        box-shadow: 2px 0 30px rgba(0,0,0,0.1);
-        overflow-y: auto;
-        transition: left 0.3s ease;
-      }
-      .sidebar.mobile-visible {
-        left: 0 !important;
-      }
-      .sidebar { width: 100vw; }
-    }
-
-    @media (max-width: 480px) {
-      .sidebar { width: calc(100vw - 60px); }
-    }
-  `;
+  const iconClass = ({ isActive }) =>
+    `transition-colors duration-300 ${isActive ? "text-sky-500" : "text-slate-400 group-hover:text-slate-500"}`;
 
   return (
-    <aside className={`sidebar ${isOpen ? "mobile-visible" : ""}`}>
-      <style>{styles}</style>
-
-      {/* Brand Header - Large Logo & Natural Design */}
-      <div
-        style={{
-          padding: "10px 10px 30px",
-          borderBottom: "1px solid #f1f5f9",
-          marginBottom: "15px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            position: "relative",
-          }}
-        >
-          {/* Logo Tanpa Kotak & Lebih Besar */}
-          <img
-            src="/saka.png"
-            alt="SAKA"
-            style={{
-              width: "55px",
-              height: "auto",
-              display: "block",
-              objectFit: "contain",
-            }}
+    <>
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeSidebar}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
           />
+        )}
+      </AnimatePresence>
 
-          <div>
-            <h2
-              style={{
-                fontSize: "22px",
-                fontWeight: "900",
-                color: "#0f172a",
-                margin: 0,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-              }}
-            >
-              SAKA
-            </h2>
-            <span
-              style={{
-                fontSize: "11px",
-                color: "#94a3b8",
-                fontWeight: "600",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginTop: "4px",
-                display: "block",
-              }}
-            >
-              Admin Panel
-            </span>
+      <motion.aside
+        className={`fixed md:sticky top-0 left-0 h-screen w-[280px] bg-white border-r border-slate-100 flex flex-col p-6 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100">
+          <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20 shrink-0">
+            <Sparkles size={24} />
           </div>
-
-          {/* Tombol Close Mobile */}
-          {isOpen && window.innerWidth <= 768 && (
-            <X
-              size={24}
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">SAKA</h2>
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest">Admin Panel</span>
+          </div>
+          
+          {isOpen && (
+            <button
               onClick={closeSidebar}
-              style={{
-                marginLeft: "auto",
-                color: "#64748b",
-                cursor: "pointer",
-              }}
-            />
+              className="ml-auto p-2 text-slate-400 hover:bg-slate-100 rounded-xl md:hidden"
+            >
+              <X size={20} />
+            </button>
           )}
         </div>
-      </div>
 
-      <nav style={{ flex: 1 }}>
-        <span className="nav-label">Overview</span>
-        <NavLink
-          to="/admin/dashboard"
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <LayoutDashboard size={18} /> Dashboard
+        <nav className="flex-1 overflow-y-auto pr-2 -mr-2">
+          <span className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-2">Overview</span>
+          
+          <NavLink to="/admin/dashboard" className={navLinkClass} onClick={handleLinkClick}>
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard size={20} className={iconClass({ isActive })} />
+                  <span>Dashboard</span>
+                </div>
+                <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
+              </>
+            )}
+          </NavLink>
+
+          <NavLink to="/admin/users" className={navLinkClass} onClick={handleLinkClick}>
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <Users size={20} className={iconClass({ isActive })} />
+                  <span>Users</span>
+                </div>
+                <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
+              </>
+            )}
+          </NavLink>
+
+          <NavLink to="/admin/content/levels" className={navLinkClass} onClick={handleLinkClick}>
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <BookOpen size={20} className={iconClass({ isActive })} />
+                  <span>Content Levels</span>
+                </div>
+                <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
+              </>
+            )}
+          </NavLink>
+
+          <div className="mt-8 mb-3">
+            <span className="block text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">Interface</span>
           </div>
-          <ChevronRight size={14} className="chevron" />
-        </NavLink>
 
-        <NavLink
-          to="/admin/users"
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <Users size={18} /> Users
-          </div>
-          <ChevronRight size={14} className="chevron" />
-        </NavLink>
+          <NavLink to="/admin/view-student" className={navLinkClass} onClick={handleLinkClick}>
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <GraduationCap size={20} className={iconClass({ isActive })} />
+                  <span>Student View</span>
+                </div>
+                <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
+              </>
+            )}
+          </NavLink>
+        </nav>
 
-        <NavLink
-          to="/admin/content/levels"
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <BookOpen size={18} /> Content
-          </div>
-          <ChevronRight size={14} className="chevron" />
-        </NavLink>
+        {/* Footer / Logout */}
+        <div className="pt-6 mt-4 border-t border-slate-100">
+          <button 
+            onClick={handleAdminLogout} 
+            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 hover:shadow-sm transition-all"
+          >
+            <LogOut size={18} strokeWidth={2.5} />
+            Logout Account
+          </button>
+        </div>
 
-        <span className="nav-label">Interface</span>
-        <NavLink
-          to="/admin/view-student"
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-          onClick={handleLinkClick}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <GraduationCap size={18} /> Student View
-          </div>
-          <ChevronRight size={14} className="chevron" />
-        </NavLink>
-      </nav>
-
-      {/* Footer / Logout Section */}
-      <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-        <button onClick={handleAdminLogout} className="logout-btn">
-          <LogOut size={18} /> Logout Account
-        </button>
-      </div>
-
-      {/* Confirmation Modal untuk Logout */}
-      <ConfirmationModal
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={confirmLogout}
-        title="Keluar dari Panel Admin?"
-        message="Sesi manajemen sistem Anda akan diakhiri. Yakin ingin melanjutkan?"
-        confirmText="Ya, Logout"
-        cancelText="Batal"
-        type="warning"
-      />
-    </aside>
+        <ConfirmationModal
+          isOpen={showLogoutConfirm}
+          onClose={() => setShowLogoutConfirm(false)}
+          onConfirm={confirmLogout}
+          title="Keluar dari Panel Admin?"
+          message="Sesi manajemen sistem Anda akan diakhiri. Yakin ingin melanjutkan?"
+          confirmText="Ya, Logout"
+          cancelText="Batal"
+          type="warning"
+        />
+      </motion.aside>
+    </>
   );
 }

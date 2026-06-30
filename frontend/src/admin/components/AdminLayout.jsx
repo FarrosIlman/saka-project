@@ -6,140 +6,31 @@ import { Menu, Sparkles } from 'lucide-react';
 export default function AdminLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-  const styles = `
-    .admin-container { 
-      display: flex; 
-      min-height: 100vh; 
-      background: #f8fafc; 
-    }
-    
-    .main-content { 
-      flex: 1; 
-      width: 100%; 
-      position: relative; 
-      overflow-x: hidden; 
-    }
-    
-    /* HEADER MOBILE - RAPI & BERSIH */
-    .mobile-header {
-      display: none; /* Hidden di desktop */
-      width: 100%;
-      height: 70px; /* Sedikit lebih tinggi agar lega */
-      padding: 0 20px; 
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-sizing: border-box;
-      justify-content: space-between; 
-      align-items: center;
-      position: sticky; 
-      top: 0; 
-      z-index: 50; 
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    .logo-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      user-select: none;
-    }
-
-    .logo-text-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    /* TOMBOL HAMBURGER YANG LEBIH RAPI */
-    .mobile-menu-btn {
-      background: #f1f5f9 !important; /* Beri background tipis */
-      border: none !important;
-      color: #0f172a !important;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px; /* Rounded box agar modern */
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      cursor: pointer !important;
-      transition: all 0.2s ease;
-      padding: 0 !important;
-    }
-
-    .mobile-menu-btn:active {
-      transform: scale(0.9);
-      background: #e2e8f0 !important;
-    }
-
-    .sidebar-overlay {
-      position: fixed; 
-      inset: 0; 
-      background: rgba(15, 23, 42, 0.3); 
-      backdrop-filter: blur(4px); 
-      z-index: 90; 
-      opacity: 0; 
-      pointer-events: none; 
-      transition: opacity 0.3s ease;
-    }
-
-    .sidebar-overlay.visible { 
-      opacity: 1; 
-      pointer-events: auto; 
-    }
-
-    @media (max-width: 768px) {
-      .admin-container { flex-direction: column; }
-      .mobile-header { display: flex; } /* Munculkan hanya di mobile */
-      .main-content { 
-        padding: 20px; 
-        box-sizing: border-box;
-      }
-    }
-  `;
-
   return (
-    <div className="admin-container">
-      <style>{styles}</style>
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans relative">
+      {/* Background Decor */}
+      <div className="absolute inset-0 bg-mesh-pattern opacity-40 pointer-events-none z-0"></div>
       
       {/* HEADER MOBILE */}
-      <header className="mobile-header">
-        <div className="logo-section">
-          <div style={{ 
-            background: '#0ea5e9', 
-            padding: '8px', 
-            borderRadius: '10px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'white' 
-          }}>
-            <Sparkles size={20} />
+      <header className="md:hidden sticky top-0 z-40 w-full h-16 px-4 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white shadow-sm">
+            <Sparkles size={18} />
           </div>
-          <div className="logo-text-wrapper">
-            <span style={{ fontWeight: '900', fontSize: '14px', letterSpacing: '0.5px', color: '#0f172a' }}>
-              SAKA PLATFORM
-            </span>
-            <span style={{ fontWeight: '700', fontSize: '10px', color: '#64748b', letterSpacing: '1px' }}>
-              ADMIN PANEL
-            </span>
+          <div className="flex flex-col justify-center">
+            <span className="font-black text-sm tracking-tight text-slate-900 leading-tight">SAKA PLATFORM</span>
+            <span className="font-bold text-[10px] text-sky-500 tracking-widest">ADMIN PANEL</span>
           </div>
         </div>
         
         <button 
-          className="mobile-menu-btn" 
+          className="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-colors active:scale-95"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open Menu"
         >
-          <Menu size={24} />
+          <Menu size={20} strokeWidth={2.5} />
         </button>
       </header>
-
-      {/* OVERLAY */}
-      <div 
-        className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`} 
-        onClick={() => setSidebarOpen(false)}
-      ></div>
 
       {/* SIDEBAR */}
       <Sidebar 
@@ -148,8 +39,10 @@ export default function AdminLayout() {
       />
       
       {/* CONTENT */}
-      <main className="main-content">
-        <Outlet />
+      <main className="flex-1 w-full min-w-0 relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 max-h-screen overflow-y-auto overflow-x-hidden">
+        <div className="max-w-7xl mx-auto h-full">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

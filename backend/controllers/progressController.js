@@ -1,6 +1,8 @@
 const Progress = require('../models/Progress');
 const Level = require('../models/Level');
+const User = require('../models/User');
 const { checkAndUnlockAchievementsUtil } = require('./leaderboardController');
+const { checkAndAwardBadgesUtil, updateStreakUtil } = require('./gamificationController');
 
 // @desc    Get user's progress
 // @route   GET /api/progress
@@ -77,20 +79,31 @@ const completeLevel = async (req, res) => {
     }
 
     await progress.save();
+    
+    // Update user stats (streak, XP, points)
+    const user = await User.findById(req.user._id);
+    if (user) {
+      updateStreakUtil(user);
+      user.totalXP = (user.totalXP || 0) + Math.round(score * 1.5);
+      user.totalPoints = (user.totalPoints || 0) + Math.round(score);
+      await user.save();
+    }
 
-    // Check and unlock achievements
+    // Check and unlock achievements & badges
     let unlockedAchievements = [];
+    let badgesAwarded = [];
     try {
       unlockedAchievements = await checkAndUnlockAchievementsUtil(req.user._id);
+      badgesAwarded = await checkAndAwardBadgesUtil(req.user._id);
     } catch (achievementError) {
-      console.error('Error checking achievements:', achievementError);
-      // Don't fail the request if achievement check fails
+      console.error('Error checking achievements/badges:', achievementError);
     }
 
     res.json({
       message: 'Level completed successfully',
       progress,
       unlockedAchievements,
+      badgesAwarded,
     });
   } catch (error) {
     console.error('Complete level error:', error);

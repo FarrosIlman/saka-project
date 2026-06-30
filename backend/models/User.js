@@ -96,6 +96,14 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    currentStreak: {
+      type: Number,
+      default: 0,
+    },
+    longestStreak: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

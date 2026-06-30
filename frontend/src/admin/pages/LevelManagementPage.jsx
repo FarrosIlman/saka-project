@@ -8,6 +8,7 @@ import {
   Layers, Loader2, X, Image as ImageIcon,
   ChevronRight, Sparkles, Search
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LevelManagementPage() {
   const showToast = useToast() || { success: () => {}, error: () => {} };
@@ -23,21 +24,17 @@ export default function LevelManagementPage() {
 
   useEffect(() => { fetchLevels(); }, []);
 
-  // Apply filters when levels or search changes
   useEffect(() => {
     let filtered = levels;
-    
     if (searchTerm) {
       filtered = filtered.filter(level =>
         level.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         level.levelNumber.toString().includes(searchTerm)
       );
     }
-
     if (filterTheme !== 'all') {
       filtered = filtered.filter(level => level.theme === filterTheme);
     }
-
     setFilteredLevels(filtered);
   }, [levels, searchTerm, filterTheme]);
 
@@ -53,7 +50,6 @@ export default function LevelManagementPage() {
     }
   };
 
-  // Get unique themes for filter dropdown
   const availableThemes = [...new Set(levels.map(l => l.theme).filter(Boolean))];
 
   const handleDelete = (level) => setDeleteModal({ isOpen: true, level });
@@ -87,169 +83,41 @@ export default function LevelManagementPage() {
     }
   };
 
-  const styles = `
-    .admin-page { padding: 32px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.6s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; gap: 20px; }
-    .title-area h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.04em; }
-    .title-area p { color: #64748b; margin-top: 4px; font-size: 15px; }
-
-    .level-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-      gap: 28px; 
-    }
-
-    /* Card Styling */
-    .glass-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 28px;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-      border-color: #0ea5e9;
-    }
-
-    .image-container {
-      width: 100%;
-      height: 200px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-    .glass-card:hover .card-img { transform: scale(1.1); }
-
-    .level-tag {
-      position: absolute; top: 16px; left: 16px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(8px);
-      color: white; padding: 6px 14px;
-      border-radius: 100px; font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.05em;
-    }
-
-    .card-body { padding: 24px; display: flex; flex-direction: column; flex-grow: 1; }
-    .card-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
-    .card-theme { font-size: 14px; color: #64748b; margin-bottom: 20px; line-height: 1.5; }
-
-    .card-footer { 
-      margin-top: auto; padding-top: 20px; 
-      border-top: 1px solid #f1f5f9;
-      display: flex; gap: 10px;
-    }
-
-    /* Buttons */
-    .btn-primary-saka {
-      background: #0f172a; color: white; border: none;
-      padding: 12px 24px; border-radius: 14px; font-weight: 700;
-      display: flex; align-items: center; gap: 8px; cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn-primary-saka:hover { background: #1e293b; transform: translateY(-2px); }
-
-    .btn-edit-card {
-      flex: 1; background: #f0f9ff; color: #0ea5e9;
-      border: none; padding: 10px; border-radius: 12px;
-      font-weight: 700; font-size: 13px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-edit-card:hover { background: #0ea5e9; color: white; }
-
-    .btn-delete-card {
-      background: #fff1f2; color: #e11d48;
-      border: none; padding: 10px; border-radius: 12px;
-      cursor: pointer; transition: 0.2s;
-    }
-    .btn-delete-card:hover { background: #e11d48; color: white; }
-
-    /* Modal */
-    .saka-modal-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
-      backdrop-filter: blur(8px); z-index: 1000;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
-    }
-    .saka-modal-content {
-      background: white; width: 100%; max-width: 500px;
-      border-radius: 32px; padding: 32px; animation: modalSlide 0.4s ease;
-    }
-    @keyframes modalSlide { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-    @media (max-width: 768px) {
-      .admin-page { padding: 20px; }
-      .header-flex { flex-direction: column; align-items: stretch; text-align: center; }
-      .header-flex button { justify-content: center; }
-      .level-grid { grid-template-columns: 1fr; }
-    }
-  `;
-
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+    <div className="flex justify-center items-center min-h-[80vh]">
       <Loader2 className="animate-spin text-sky-500" size={48} />
     </div>
   );
 
   return (
-    <div className="admin-page">
-      <style>{styles}</style>
-
-      <div className="header-flex">
-        <div className="title-area">
-          <h1>Content Management</h1>
-          <p>Kelola kurikulum dan tantangan berbicara untuk siswa.</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto">
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight mb-2">
+            <Layers className="text-sky-500" size={32} />
+            Content Management
+          </h1>
+          <p className="text-slate-500 font-medium">Kelola kurikulum dan tantangan berbicara untuk siswa.</p>
         </div>
-        <button className="btn-primary-saka" onClick={() => setCreateModal(true)}>
+        <button 
+          onClick={() => setCreateModal(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all"
+        >
           <Plus size={20} /> New Level
         </button>
       </div>
 
       {/* Search & Filter Bar */}
-      <div style={{
-        display: 'flex',
-        gap: '16px',
-        marginBottom: '32px',
-        flexWrap: 'wrap',
-        alignItems: 'center'
-      }}>
-        <div style={{
-          flex: 1,
-          minWidth: '250px',
-          position: 'relative'
-        }}>
-          <Search size={18} style={{
-            position: 'absolute',
-            left: '16px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#94a3b8',
-            pointerEvents: 'none'
-          }} />
+      <div className="glass-card bg-white/80 p-4 mb-8 flex flex-wrap gap-4 items-center">
+        <div className="relative flex-1 min-w-[250px]">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search by title or level number..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 16px 12px 48px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.3s',
-              boxSizing: 'border-box'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#0ea5e9'}
-            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-medium focus:outline-none focus:border-sky-500 transition-colors"
           />
         </div>
 
@@ -257,17 +125,7 @@ export default function LevelManagementPage() {
           <select
             value={filterTheme}
             onChange={(e) => setFilterTheme(e.target.value)}
-            style={{
-              padding: '10px 16px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '14px',
-              fontSize: '14px',
-              fontWeight: '500',
-              backgroundColor: filterTheme !== 'all' ? '#f0f9ff' : 'white',
-              color: filterTheme !== 'all' ? '#0ea5e9' : '#64748b',
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
+            className={`py-3 px-4 border-2 rounded-xl text-sm font-bold cursor-pointer transition-colors outline-none ${filterTheme !== 'all' ? 'bg-sky-50 border-sky-200 text-sky-600' : 'bg-slate-50 border-slate-100 text-slate-600 focus:border-sky-500'}`}
           >
             <option value="all">All Themes</option>
             {availableThemes.map(theme => (
@@ -278,90 +136,75 @@ export default function LevelManagementPage() {
 
         {(searchTerm || filterTheme !== 'all') && (
           <button
-            onClick={() => {
-              setSearchTerm('');
-              setFilterTheme('all');
-            }}
-            style={{
-              padding: '10px 16px',
-              background: '#f1f5f9',
-              border: 'none',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: '#64748b',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = '#e2e8f0';
-              e.target.style.color = '#475569';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = '#f1f5f9';
-              e.target.style.color = '#64748b';
-            }}
+            onClick={() => { setSearchTerm(''); setFilterTheme('all'); }}
+            className="px-4 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors flex items-center gap-2"
           >
-            ✕ Clear Filters
+            <X size={16} /> Clear Filters
           </button>
         )}
 
-        <div style={{
-          padding: '8px 16px',
-          background: '#f0fdf4',
-          borderRadius: '12px',
-          fontSize: '13px',
-          fontWeight: '600',
-          color: '#16a34a',
-          whiteSpace: 'nowrap'
-        }}>
-          {filteredLevels.length} level{filteredLevels.length !== 1 ? 's' : ''}
+        <div className="px-4 py-3 bg-sky-50 text-sky-600 font-black rounded-xl text-sm border border-sky-100">
+          {filteredLevels.length} Level{filteredLevels.length !== 1 ? 's' : ''}
         </div>
       </div>
 
+      {/* Level Grid */}
       {filteredLevels.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          color: '#94a3b8'
-        }}>
-          <BookOpen size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-          <p style={{ fontSize: '16px', fontWeight: '600' }}>No levels found</p>
-          <p style={{ fontSize: '14px', marginTop: '8px' }}>
-            {searchTerm || filterTheme !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Create your first level to get started'}
+        <div className="glass-card bg-white/50 p-16 text-center border-dashed">
+          <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
+          <p className="text-xl font-bold text-slate-600 mb-2">No levels found</p>
+          <p className="text-slate-500">
+            {searchTerm || filterTheme !== 'all' ? 'Try adjusting your search or filters' : 'Create your first level to get started'}
           </p>
         </div>
       ) : (
-        <div className="level-grid">
-          {filteredLevels.map((level) => (
-          <div key={level._id} className="glass-card">
-            <div className="image-container">
-              <span className="level-tag">Level {level.levelNumber}</span>
-              <img src={level.imageUrl} alt={level.title} className="card-img" />
-            </div>
-            
-            <div className="card-body">
-              <h3 className="card-title">{level.title}</h3>
-              <p className="card-theme">{level.theme}</p>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '13px', fontWeight: 600 }}>
-                <BookOpen size={16} />
-                <span>{level.questions?.length || 0} Task Available</span>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence>
+            {filteredLevels.map((level) => (
+              <motion.div 
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                key={level._id} 
+                className="glass-card bg-white group hover:-translate-y-2 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
+              >
+                <div className="relative h-48 overflow-hidden bg-slate-100">
+                  <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black uppercase tracking-widest rounded-full border border-white/20 shadow-sm">
+                    Level {level.levelNumber}
+                  </div>
+                  <img src={level.imageUrl} alt={level.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                </div>
+                
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-xl font-black text-slate-900 mb-1 line-clamp-1">{level.title}</h3>
+                  <p className="text-sm font-bold text-sky-600 mb-4">{level.theme}</p>
+                  
+                  <div className="flex items-center gap-2 text-slate-500 text-sm font-bold mb-6">
+                    <BookOpen size={16} />
+                    <span>{level.questions?.length || 0} Task Available</span>
+                  </div>
 
-              <div className="card-footer">
-                <button className="btn-edit-card" onClick={() => navigate(`/admin/content/levels/${level._id}/edit`)}>
-                  <Pencil size={15} /> Edit Tasks
-                </button>
-                <button className="btn-delete-card" onClick={() => handleDelete(level)}>
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+                  <div className="mt-auto flex gap-3 pt-4 border-t border-slate-100">
+                    <button 
+                      onClick={() => navigate(`/admin/content/levels/${level._id}/edit`)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-sky-50 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition-colors"
+                    >
+                      <Pencil size={16} /> Edit Tasks
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(level)}
+                      className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-rose-500 hover:text-white transition-colors"
+                      title="Delete Level"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
@@ -372,40 +215,74 @@ export default function LevelManagementPage() {
         title="Delete Level"
         message={`Hapus level "${deleteModal.level?.title}"? Seluruh soal di dalamnya akan hilang permanen.`}
         confirmText="Hapus Permanen"
+        type="danger"
       />
 
       {createModal && (
-        <div className="saka-modal-overlay" onClick={() => setCreateModal(false)}>
-          <div className="saka-modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '22px', fontWeight: 800 }}>Create New Level</h2>
-              <X onClick={() => setCreateModal(false)} style={{ cursor: 'pointer', color: '#94a3b8' }} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg bg-white rounded-[2rem] p-8 shadow-2xl"
+          >
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black text-slate-900">Create New Level</h2>
+              <button onClick={() => setCreateModal(false)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-colors">
+                <X size={24} />
+              </button>
             </div>
             
-            <form onSubmit={handleCreateLevel}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Level Number</label>
-                <input style={{ width: '100%', padding: '12px', border: '1.5px solid #e2e8f0', borderRadius: '12px' }} type="number" required value={newLevel.levelNumber} onChange={e => setNewLevel({...newLevel, levelNumber: e.target.value})} placeholder="Ex: 1" />
+            <form onSubmit={handleCreateLevel} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Level Number</label>
+                <input 
+                  type="number" required 
+                  value={newLevel.levelNumber} 
+                  onChange={e => setNewLevel({...newLevel, levelNumber: e.target.value})} 
+                  placeholder="Ex: 1" 
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
               </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Level Title</label>
-                <input style={{ width: '100%', padding: '12px', border: '1.5px solid #e2e8f0', borderRadius: '12px' }} type="text" required value={newLevel.title} onChange={e => setNewLevel({...newLevel, title: e.target.value})} placeholder="Ex: Greeting & Introduction" />
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Level Title</label>
+                <input 
+                  type="text" required 
+                  value={newLevel.title} 
+                  onChange={e => setNewLevel({...newLevel, title: e.target.value})} 
+                  placeholder="Ex: Greeting & Introduction" 
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
               </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Theme Description</label>
-                <input style={{ width: '100%', padding: '12px', border: '1.5px solid #e2e8f0', borderRadius: '12px' }} type="text" required value={newLevel.theme} onChange={e => setNewLevel({...newLevel, theme: e.target.value})} placeholder="Ex: Basic communication skills" />
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Theme Description</label>
+                <input 
+                  type="text" required 
+                  value={newLevel.theme} 
+                  onChange={e => setNewLevel({...newLevel, theme: e.target.value})} 
+                  placeholder="Ex: Basic communication skills" 
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
               </div>
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Thumbnail URL</label>
-                <input style={{ width: '100%', padding: '12px', border: '1.5px solid #e2e8f0', borderRadius: '12px' }} type="url" required value={newLevel.imageUrl} onChange={e => setNewLevel({...newLevel, imageUrl: e.target.value})} placeholder="https://..." />
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Thumbnail URL</label>
+                <input 
+                  type="url" required 
+                  value={newLevel.imageUrl} 
+                  onChange={e => setNewLevel({...newLevel, imageUrl: e.target.value})} 
+                  placeholder="https://..." 
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
               </div>
-              <button type="submit" className="btn-primary-saka" style={{ width: '100%', justifyContent: 'center', padding: '16px' }}>
-                Create Level Now
-              </button>
+              
+              <div className="pt-4">
+                <button type="submit" className="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                  Create Level Now
+                </button>
+              </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

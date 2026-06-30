@@ -1,6 +1,7 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -35,16 +36,18 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
-    }
-    
-    // Handle 403 forbidden
-    if (error.response?.status === 403) {
+    } else if (error.response?.status === 403) {
+      // Handle 403 forbidden
       console.error('Access denied:', message);
-    }
-    
-    // Handle 500 server error
-    if (error.response?.status >= 500) {
-      console.error('Server error:', message);
+      toast.error('Akses ditolak: ' + message);
+    } else {
+      // Handle other errors (500, 400, 404, etc)
+      console.error('API Error:', message);
+      
+      // Prevent spamming toast for aborted requests or standard network errors without specific response
+      if (error.code !== 'ERR_CANCELED') {
+        toast.error(message);
+      }
     }
     
     return Promise.reject({
@@ -102,6 +105,14 @@ export const userAPI = {
   updatePassword: (data) => api.post('/user/update-password', data),
   updateProfile: (data) => api.put('/user/profile', data),
   updatePreferences: (data) => api.put('/user/preferences', data),
+};
+
+// Gamification API
+export const gamificationAPI = {
+  getBadges: () => api.get('/gamification/badges'),
+  getStreakInfo: () => api.get('/gamification/streak'),
+  claimDailyReward: () => api.post('/gamification/claim-daily-reward'),
+  checkDailyRewardStatus: () => api.get('/gamification/daily-reward-status'),
 };
 
 export default api;

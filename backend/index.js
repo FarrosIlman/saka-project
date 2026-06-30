@@ -1,18 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+// Load environment variables immediately so other modules can use them
+dotenv.config();
+
 const http = require('http');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 const RealtimeManager = require('./services/realtimeManager');
 
-// Load environment variables
-dotenv.config();
+// (dotenv was moved to the top)
 
 // ❌ HAPUS ATAU KOMENTARI BARIS INI:
 // connectDB(); 
 
 const app = express();
+
+// --- SECURITY MIDDLEWARES ---
+// Set security HTTP headers
+app.use(helmet());
+// Prevent NoSQL injection
+app.use(mongoSanitize());
+
 
 // --- PERBAIKAN UNTUK VERCEL (PROXY) ---
 // Wajib diaktifkan agar express-rate-limit tidak crash saat membaca IP pengguna melalui Vercel
@@ -93,14 +104,14 @@ const authLimiter = rateLimit({
 // General rate limiter untuk endpoint lain
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 100, // Maksimal 100 request per IP per windowMs
+  max: 1000, // Maksimal 1000 request per IP per windowMs (dinaikkan untuk testing)
   message: 'Terlalu banyak request. Coba lagi nanti.',
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
     // Skip preflight OPTIONS requests dan development mode
     if (req.method === 'OPTIONS') return true;
-    return process.env.NODE_ENV === 'development';
+    return process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
   }
 });
 
@@ -127,12 +138,35 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'English Quiz API is running' });
 });
 
-// Error handling middleware
+// Error handling middleware (Global Error Handler)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!', 
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined 
+  
+  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let message = err.message || 'Server Error';
+
+  // Mongoose bad ObjectId
+  if (err.name === 'CastError') {
+    statusCode = 404;
+    message = 'Resource not found';
+  }
+
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    message = Object.values(err.errors).map((val) => val.message).join(', ');
+  }
+
+  // Mongoose duplicate key error
+  if (err.code === 11000) {
+    statusCode = 400;
+    message = 'Duplicate field value entered';
+  }
+
+  res.status(statusCode).json({ 
+    message, 
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 });
 

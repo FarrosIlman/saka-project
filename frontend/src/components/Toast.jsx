@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, AlertCircle, XCircle, Info, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Toast = ({ message, type = 'success', onClose, duration = 4000 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -7,170 +8,95 @@ export const Toast = ({ message, type = 'success', onClose, duration = 4000 }) =
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      if (onClose) onClose();
+      if (onClose) setTimeout(onClose, 300); // Wait for exit animation
     }, duration);
-
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
-  if (!isVisible) return null;
-
-  const colorConfig = {
+  const config = {
     success: {
-      bg: '#f0fdf4',
-      border: '#dcfce7',
-      bgInner: '#ecfdf5',
-      text: '#166534',
-      icon: '#10b981',
-      shadow: 'rgba(16, 185, 129, 0.2)',
+      icon: CheckCircle2,
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20'
     },
     error: {
-      bg: '#fef2f2',
-      border: '#fee2e2',
-      bgInner: '#fff1f2',
-      text: '#991b1b',
-      icon: '#ef4444',
-      shadow: 'rgba(239, 68, 68, 0.2)',
+      icon: XCircle,
+      color: 'text-rose-500',
+      bg: 'bg-rose-500/10',
+      border: 'border-rose-500/20'
     },
     warning: {
-      bg: '#fffbeb',
-      border: '#fef3c7',
-      bgInner: '#fef9e7',
-      text: '#92400e',
-      icon: '#f59e0b',
-      shadow: 'rgba(245, 158, 11, 0.2)',
+      icon: AlertCircle,
+      color: 'text-amber-500',
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20'
     },
     info: {
-      bg: '#f0f9ff',
-      border: '#e0f2fe',
-      bgInner: '#f0f9ff',
-      text: '#0c4a6e',
-      icon: '#0ea5e9',
-      shadow: 'rgba(14, 165, 233, 0.2)',
+      icon: Info,
+      color: 'text-sky-500',
+      bg: 'bg-sky-500/10',
+      border: 'border-sky-500/20'
     },
-  };
+  }[type] || { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' };
 
-  const config = colorConfig[type] || colorConfig.success;
-
-  const IconComponent = {
-    success: CheckCircle2,
-    error: XCircle,
-    warning: AlertCircle,
-    info: Info,
-  }[type] || CheckCircle2;
+  const IconComponent = config.icon;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        left: '20px',
-        zIndex: 9999,
-        animation: 'slideIn 0.3s ease-out',
-        maxWidth: 'calc(100% - 40px)',
-      }}
-    >
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(400px);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        @media (max-width: 480px) {
-          @keyframes slideIn {
-            from {
-              transform: translateX(100%);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
-          }
-        }
-      `}</style>
-      <div
-        style={{
-          background: config.bg,
-          border: `1.5px solid ${config.border}`,
-          borderRadius: '14px',
-          padding: '14px 16px',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '12px',
-          minHeight: '44px',
-          minWidth: '280px',
-          maxWidth: '420px',
-          width: '100%',
-          boxShadow: `0 10px 25px ${config.shadow}`,
-        }}
-      >
-        <IconComponent
-          size={20}
-          style={{
-            color: config.icon,
-            flexShrink: 0,
-            marginTop: '2px',
-          }}
-        />
-        <div style={{ flex: 1 }}>
-          <p
-            style={{
-              margin: 0,
-              fontWeight: 600,
-              fontSize: '14px',
-              color: config.text,
-              lineHeight: '1.4',
-            }}
-          >
-            {message}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            if (onClose) onClose();
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: config.icon,
-            cursor: 'pointer',
-            padding: '2px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => (e.target.style.opacity = '0.6')}
-          onMouseLeave={(e) => (e.target.style.opacity = '1')}
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          layout
+          initial={{ opacity: 0, y: -50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="pointer-events-auto flex w-full max-w-sm rounded-2xl bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-1 overflow-hidden"
         >
-          <X size={18} />
-        </button>
-      </div>
-    </div>
+          <div className="flex w-full items-start p-3 gap-3">
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${config.bg} ${config.border} border`}>
+              <IconComponent size={18} className={config.color} strokeWidth={3} />
+            </div>
+            
+            <div className="flex-1 pt-1.5 min-w-0">
+              <p className="text-sm font-bold text-slate-800 leading-snug truncate pr-2">
+                {message}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setIsVisible(false);
+                if (onClose) setTimeout(onClose, 300);
+              }}
+              className="flex-shrink-0 p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors mt-0.5"
+            >
+              <X size={16} strokeWidth={3} />
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
-// Toast Container untuk manage multiple toasts
 export const ToastContainer = ({ toasts = [], removeToast }) => {
   return (
-    <>
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id || index}
-          message={toast.message}
-          type={toast.type}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
-    </>
+    <div
+      aria-live="assertive"
+      className="pointer-events-none fixed inset-0 flex flex-col items-center sm:items-end px-4 py-6 gap-3 z-[9999]"
+    >
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            duration={toast.duration}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </AnimatePresence>
+    </div>
   );
 };
