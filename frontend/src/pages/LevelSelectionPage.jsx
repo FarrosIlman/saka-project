@@ -4,15 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { levelAPI, gamificationAPI } from '../services/api';
 import ConfirmationModal from '../components/ConfirmationModal';
-import BadgeDisplay from '../components/gamification/BadgeDisplay';
 import StreakTracker from '../components/gamification/StreakTracker';
 import DailyRewardCard from '../components/gamification/DailyRewardCard';
 import LeaderboardWidget from '../components/gamification/LeaderboardWidget';
 import DailyQuestsWidget from '../components/gamification/DailyQuestsWidget';
+import BadgesGallery from '../components/gamification/BadgesGallery';
 import LevelMaterialModal from '../components/modals/LevelMaterialModal';
 import HeartRefillModal from '../components/modals/HeartRefillModal';
 import { OnboardingTutorial } from '../components/gamification/OnboardingTutorial';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LogOut, Lock, CheckCircle2, 
   Trophy, Loader2, Play,
@@ -25,7 +25,8 @@ export default function LevelSelectionPage() {
   const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeMobileTab, setActiveMobileTab] = useState('home'); // 'home', 'quests', 'leaderboard', 'profile'
+  const [activeMobileTab, setActiveMobileTab] = useState('home'); // 'home', 'quests', 'leaderboard', 'badges', 'profile'
+  const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showHeartModal, setShowHeartModal] = useState(false);
   const [hearts, setHearts] = useState(5);
   const [nextRegenTime, setNextRegenTime] = useState(null);
@@ -195,9 +196,10 @@ export default function LevelSelectionPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10 pb-24 lg:pb-0">
-        
-        {/* Main Content (Map) */}
+      <div className={showBadgesModal || activeMobileTab === 'badges' ? 'hidden' : 'block'}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10 pb-24 lg:pb-0">
+          
+          {/* Main Content (Map) */}
         <section className={`lg:col-span-8 order-2 lg:order-1 ${activeMobileTab !== 'home' ? 'hidden lg:block' : ''}`}>
           <div className="mb-12">
             <motion.div 
@@ -379,14 +381,32 @@ export default function LevelSelectionPage() {
             transition={{ delay: 0.1 }}
             className="glass-card p-6"
           >
-            <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 mb-6">
-              <Award size={22} className="text-amber-500" /> Latest Badges
+            <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 mb-4">
+              <Award size={22} className="text-amber-500" /> Prestasi Terbaru
             </h3>
-            <BadgeDisplay badges={badges} />
+            
+            {badges.filter(b => b.isUnlocked).length > 0 ? (
+              <div className="flex gap-2 justify-center mb-4">
+                {badges.filter(b => b.isUnlocked).slice(-3).map((b, i) => (
+                  <div key={i} className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 border-2 border-amber-300 shadow-sm" title={b.name}>
+                    <Award size={24} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 text-center mb-4">Belum ada lencana yang didapat.</p>
+            )}
+            
+            <button 
+              onClick={() => setShowBadgesModal(true)}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3 bg-amber-50 text-amber-600 font-bold rounded-xl hover:bg-amber-100 transition-colors"
+            >
+              View Badges Gallery <Award size={18} />
+            </button>
             
             <button 
               onClick={() => navigate('/profile')}
-              className="w-full mt-6 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              className="w-full mt-3 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
             >
               View Full Profile <ArrowRight size={18} />
             </button>
@@ -402,8 +422,15 @@ export default function LevelSelectionPage() {
           </motion.div>
             </div>
           </div>
-        </aside>
-      </main>
+          </aside>
+        </main>
+      </div>
+
+      <div className={!(showBadgesModal || activeMobileTab === 'badges') ? 'hidden' : 'block'}>
+        <main className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-4 pb-24">
+          <BadgesGallery badges={badges} onClose={() => { setShowBadgesModal(false); setActiveMobileTab('home'); }} />
+        </main>
+      </div>
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 pb-safe z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
@@ -473,6 +500,26 @@ export default function LevelSelectionPage() {
           </button>
 
           <button 
+            onClick={() => setActiveMobileTab('badges')}
+            className="relative flex flex-col items-center w-full h-full"
+          >
+            <div className={`absolute transition-all duration-300 ease-out flex items-center justify-center rounded-full z-20 ${
+              activeMobileTab === 'badges' 
+                ? '-top-4 w-[50px] h-[50px] bg-sky-500 text-white border-[4px] border-white shadow-sm' 
+                : 'top-1/2 -translate-y-1/2 w-8 h-8 text-slate-400 bg-transparent border-0'
+            }`}>
+              <Award size={22} strokeWidth={activeMobileTab === 'badges' ? 2.5 : 2} />
+            </div>
+            <span className={`absolute bottom-1.5 text-[10px] font-black transition-all duration-300 ease-out ${
+              activeMobileTab === 'badges' 
+                ? 'translate-y-0 opacity-100 text-sky-500' 
+                : 'translate-y-4 opacity-0 text-slate-400'
+            }`}>
+              Badges
+            </span>
+          </button>
+
+          <button 
             onClick={() => setActiveMobileTab('profile')}
             className="relative flex flex-col items-center w-full h-full"
           >
@@ -525,6 +572,8 @@ export default function LevelSelectionPage() {
           if (selectedLevel) navigate(`/quiz/${selectedLevel.levelNumber}`);
         }}
       />
+      
+
 
       {/* Onboarding Tutorial Modal for New Users */}
       {user && !user.hasCompletedTutorial && (

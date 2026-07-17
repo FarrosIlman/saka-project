@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { 
-  Rocket, BookOpen, Mic2, BarChart3, 
-  Gamepad2, LayoutDashboard, 
-  ChevronRight, Target, Sparkles
+  Rocket, BookOpen, Trophy, Crown, 
+  Gamepad2, LayoutDashboard, Flame,
+  ChevronRight, Heart, Sparkles, Coins
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -112,10 +112,10 @@ export default function LandingPage() {
       >
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4 p-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
           {[
-            { val: "AI-Powered", lbl: "Voice Recognition" },
-            { val: "Level 1-10", lbl: "Misi Bertahap" },
-            { val: "Gamified", lbl: "Sistem Reward" },
-            { val: "Real-time", lbl: "Analisis Progres" },
+            { val: "Multi-Level", lbl: "Misi Bertahap" },
+            { val: "Gamified", lbl: "Sistem Poin & XP" },
+            { val: "Leaderboard", lbl: "Kompetisi Global" },
+            { val: "Daily Streak", lbl: "Hadiah Harian" },
           ].map((stat, idx) => (
             <div key={idx} className="flex flex-col gap-1 pt-4 md:pt-0">
               <span className="text-2xl font-black text-slate-800">{stat.val}</span>
@@ -141,33 +141,33 @@ export default function LandingPage() {
         >
           <FeatureCard 
             icon={<BookOpen size={28}/>} 
-            title="Materi Terstruktur" 
-            desc="Kurikulum bertingkat yang membantu siswa menguasai materi secara bertahap layaknya menyelesaikan game." 
+            title="Materi Kuis Berjenjang" 
+            desc="Kurikulum bertingkat dari level dasar hingga mahir yang membantu siswa menguasai Bahasa Inggris secara bertahap." 
           />
           <FeatureCard 
-            icon={<Mic2 size={28}/>} 
-            title="Speaking Lab AI" 
-            desc="Latihan pengucapan interaktif dengan teknologi Speech Recognition untuk meningkatkan kepercayaan diri." 
+            icon={<Flame size={28}/>} 
+            title="Daily Streak & Rewards" 
+            desc="Login dan selesaikan misi setiap hari untuk mempertahankan rentetan api (streak) dan dapatkan bonus menarik." 
           />
           <FeatureCard 
-            icon={<Gamepad2 size={28}/>} 
-            title="Gamifikasi Penuh" 
-            desc="Belajar serasa bermain! Kumpulkan XP, Streak harian, Lencana, dan taklukkan Leaderboard." 
+            icon={<Coins size={28}/>} 
+            title="Sistem Ekonomi Poin" 
+            desc="Kumpulkan Poin dan XP dari setiap jawaban benar untuk memanjat papan peringkat." 
           />
           <FeatureCard 
-            icon={<BarChart3 size={28}/>} 
-            title="Pantau Progres" 
-            desc="Grafik analitik real-time yang modern untuk memantau perkembangan nilai dan aktivitas secara akurat." 
+            icon={<Heart size={28}/>} 
+            title="Sistem Nyawa Dinamis" 
+            desc="Bermain butuh nyawa! Jika kehabisan, kamu bisa memulihkannya dengan menonton iklan atau berlatih soal." 
+          />
+          <FeatureCard 
+            icon={<Crown size={28}/>} 
+            title="Papan Peringkat Global" 
+            desc="Berkompetisi dengan teman-teman dari seluruh sekolah untuk meraih posisi puncak di Leaderboard." 
           />
           <FeatureCard 
             icon={<LayoutDashboard size={28}/>} 
             title="Dashboard Admin" 
-            desc="Panel kontrol canggih bagi guru/admin untuk manajemen data siswa, level, dan melihat statistik kelas." 
-          />
-          <FeatureCard 
-            icon={<Target size={28}/>} 
-            title="Fokus Akurasi" 
-            desc="Algoritma penilaian kemiripan teks tingkat lanjut untuk memastikan jawaban siswa dinilai secara presisi." 
+            desc="Panel kontrol canggih bagi guru/admin untuk manajemen kuis, level, dan melihat aktivitas siswa." 
           />
         </motion.div>
       </div>

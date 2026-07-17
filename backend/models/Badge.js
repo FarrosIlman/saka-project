@@ -10,16 +10,12 @@ const badgeSchema = new mongoose.Schema(
     badgeType: {
       type: String,
       enum: [
-        'first_blood', // First level completed
-        'speedster', // Complete level in under 5 minutes
-        'perfectionist', // Score 100 on 5 levels
-        'marathon', // Complete 10 levels
-        'champion', // Reach top 10 leaderboard
-        'legend', // Complete all levels
-        'streak_7', // 7 day streak
-        'streak_30', // 30 day streak
-        'teacher', // Help 5 students
-        'consistent', // Daily login for 30 days
+        'first_blood', 'speedster', 'perfectionist', 'marathon', 
+        'champion', 'legend', 'streak_7', 'streak_30', 
+        'teacher', 'consistent', 'night_owl', 'early_bird',
+        'sharpshooter', 'unstoppable', 'scholar', 'weekend_warrior',
+        'flawless_week', 'polyglot', 'treasure_hunter', 'point_hoarder',
+        'revival'
       ],
       required: true,
     },

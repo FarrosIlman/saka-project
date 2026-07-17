@@ -2,6 +2,7 @@ const Badge = require('../models/Badge');
 const User = require('../models/User');
 const Progress = require('../models/Progress');
 const Notification = require('../models/Notification');
+const badgeDefinitions = require('../utils/badgeDefinitions');
 
 // Gamification Controller for badges, streaks, achievements
 
@@ -98,12 +99,28 @@ const updateStreakUtil = (user) => {
 
 exports.getBadges = async (req, res) => {
   try {
-    const badges = await Badge.find({ user: req.user.id });
+    const userBadges = await Badge.find({ user: req.user.id });
     
+    const mergedBadges = badgeDefinitions.map(def => {
+      const userBadge = userBadges.find(b => b.badgeType === def.badgeType);
+      if (userBadge && userBadge.isUnlocked) {
+        return {
+          ...def,
+          isUnlocked: true,
+          unlockedAt: userBadge.unlockedAt,
+        };
+      }
+      return {
+        ...def,
+        isUnlocked: false,
+        unlockedAt: null,
+      };
+    });
+
     const badgeStats = {
-      total: badges.length,
-      unlocked: badges.filter(b => b.isUnlocked).length,
-      badges,
+      total: mergedBadges.length,
+      unlocked: mergedBadges.filter(b => b.isUnlocked).length,
+      badges: mergedBadges,
     };
 
     res.status(200).json({
@@ -111,6 +128,7 @@ exports.getBadges = async (req, res) => {
       ...badgeStats,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Error fetching badges' });
   }
 };
