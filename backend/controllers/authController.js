@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Progress = require('../models/Progress');
 const Level = require('../models/Level');
 const asyncHandler = require('../utils/asyncHandler');
+const { updateStreakUtil } = require('./gamificationController');
 
 // Generate JWT token
 const generateToken = (id) => {

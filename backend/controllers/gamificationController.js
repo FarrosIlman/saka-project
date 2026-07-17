@@ -85,6 +85,10 @@ const updateStreakUtil = (user) => {
     } else if (diffDays > 1) {
       user.currentStreak = 1;
       streakIncreased = true; // Started a new streak
+    } else if (diffDays === 0 && (!user.currentStreak || user.currentStreak === 0)) {
+      user.currentStreak = 1;
+      streakIncreased = true;
+      user.longestStreak = Math.max(user.longestStreak || 0, 1);
     }
   }
 
