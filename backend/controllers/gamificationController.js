@@ -61,6 +61,7 @@ const checkAndAwardBadgesUtil = async (userId) => {
 };
 
 const updateStreakUtil = (user) => {
+  let streakIncreased = false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -71,6 +72,7 @@ const updateStreakUtil = (user) => {
 
   if (!lastActivityDate) {
     user.currentStreak = 1;
+    streakIncreased = true;
     user.longestStreak = Math.max(user.longestStreak || 0, 1);
   } else {
     const diffTime = today.getTime() - lastActivityDate.getTime();
@@ -78,14 +80,16 @@ const updateStreakUtil = (user) => {
 
     if (diffDays === 1) {
       user.currentStreak = (user.currentStreak || 0) + 1;
+      streakIncreased = true;
       user.longestStreak = Math.max(user.longestStreak || 0, user.currentStreak);
     } else if (diffDays > 1) {
       user.currentStreak = 1;
+      streakIncreased = true; // Started a new streak
     }
   }
 
   user.lastLogin = new Date();
-  return user;
+  return { updatedUser: user, streakIncreased };
 };
 
 exports.getBadges = async (req, res) => {
@@ -144,23 +148,25 @@ exports.claimDailyReward = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
-    // Check if already claimed today
+    // Check if 24 hours have passed since last claim
     if (user.lastDailyRewardClaimed) {
       const lastClaimedDate = new Date(user.lastDailyRewardClaimed);
       const today = new Date();
+      const timeSinceLastClaim = today.getTime() - lastClaimedDate.getTime();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
       
-      if (lastClaimedDate.toDateString() === today.toDateString()) {
+      if (timeSinceLastClaim < twentyFourHours) {
         return res.status(400).json({
           success: false,
-          message: 'Anda sudah claim reward hari ini. Coba besok lagi!',
+          message: 'Anda harus menunggu 24 jam sejak klaim terakhir!',
           alreadyClaimed: true,
-          nextClaimTime: new Date(lastClaimedDate.getTime() + 24 * 60 * 60 * 1000),
+          nextClaimTime: new Date(lastClaimedDate.getTime() + twentyFourHours),
         });
       }
     }
     
     // Award points and XP
-    user.totalPoints = (user.totalPoints || 0) + 10;
+    user.totalPoints = (user.totalPoints || 0) + 2;
     user.totalXP = (user.totalXP || 0) + 25;
     user.lastDailyRewardClaimed = new Date();
     
@@ -172,14 +178,14 @@ exports.claimDailyReward = async (req, res) => {
       user: req.user.id,
       type: 'reminder',
       title: 'Daily Reward Claimed! 🎁',
-      message: 'You earned 10 points and 25 XP',
+      message: 'You earned 2 points and 25 XP',
       priority: 'low',
     });
 
     res.status(200).json({
       success: true,
       message: 'Daily reward claimed successfully',
-      pointsEarned: 10,
+      pointsEarned: 2,
       xpGained: 25,
       nextClaimTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
@@ -199,10 +205,12 @@ exports.checkDailyRewardStatus = async (req, res) => {
     if (user.lastDailyRewardClaimed) {
       const lastClaimedDate = new Date(user.lastDailyRewardClaimed);
       const today = new Date();
+      const timeSinceLastClaim = today.getTime() - lastClaimedDate.getTime();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
       
-      if (lastClaimedDate.toDateString() === today.toDateString()) {
+      if (timeSinceLastClaim < twentyFourHours) {
         canClaim = false;
-        nextClaimTime = new Date(lastClaimedDate.getTime() + 24 * 60 * 60 * 1000);
+        nextClaimTime = new Date(lastClaimedDate.getTime() + twentyFourHours);
       }
     }
     
@@ -414,5 +422,72 @@ exports.refillHearts = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error refilling hearts' });
+  }
+};
+
+exports.practiceToHeal = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (user.hearts >= 5) {
+      return res.status(400).json({ message: 'Hearts are already full' });
+    }
+
+    const today = new Date();
+    const isSameDay = user.lastPracticeDate && 
+      user.lastPracticeDate.toDateString() === today.toDateString();
+
+    let practiceCount = isSameDay ? (user.practiceCountToday || 0) : 0;
+
+    if (practiceCount >= 3) {
+      return res.status(400).json({ message: 'You have reached the practice limit for today (3/3).' });
+    }
+
+    user.hearts += 1;
+    user.practiceCountToday = practiceCount + 1;
+    user.lastPracticeDate = today;
+    
+    if (user.hearts === 5) {
+      user.lastHeartRegen = Date.now();
+    }
+    
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Practice successful! 1 Heart recovered.',
+      hearts: user.hearts,
+      practiceCountToday: user.practiceCountToday
+    });
+  } catch (error) {
+    console.error('Error practice to heal:', error);
+    res.status(500).json({ message: 'Error recovering heart' });
+  }
+};
+
+exports.watchAdToHeal = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (user.hearts >= 5) {
+      return res.status(400).json({ message: 'Hearts are already full' });
+    }
+
+    user.hearts += 1;
+    
+    if (user.hearts === 5) {
+      user.lastHeartRegen = Date.now();
+    }
+    
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Ad watched! 1 Heart recovered.',
+      hearts: user.hearts
+    });
+  } catch (error) {
+    console.error('Error watch ad to heal:', error);
+    res.status(500).json({ message: 'Error recovering heart' });
   }
 };

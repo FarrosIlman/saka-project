@@ -105,6 +105,7 @@ export const userAPI = {
   updatePassword: (data) => api.post('/user/update-password', data),
   updateProfile: (data) => api.put('/user/profile', data),
   updatePreferences: (data) => api.put('/user/preferences', data),
+  completeTutorial: () => api.put('/user/tutorial-complete'),
 };
 
 // Gamification API
@@ -118,6 +119,8 @@ export const gamificationAPI = {
   getHeartStatus: () => api.get('/gamification/hearts/status'),
   deductHeart: () => api.post('/gamification/hearts/deduct'),
   refillHearts: () => api.post('/gamification/hearts/refill'),
+  practiceHeal: () => api.post('/gamification/hearts/practice-heal'),
+  watchAdHeal: () => api.post('/gamification/hearts/watch-ad-heal'),
 };
 
 export default api;

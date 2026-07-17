@@ -2,16 +2,27 @@ const Comment = require('../models/Comment');
 const Notification = require('../models/Notification');
 const { isValidObjectId } = require('mongoose');
 
+const Level = require('../models/Level');
+
 // Get comments for a level
 exports.getLevelComments = async (req, res) => {
   try {
     const { levelId } = req.params;
     const { limit = 10, page = 1 } = req.query;
 
-    // Validate levelId
-    if (!isValidObjectId(levelId)) {
+    // Check if levelId is a number
+    const levelNum = parseInt(levelId);
+    if (isNaN(levelNum)) {
       return res.status(400).json({ message: 'Invalid level ID format' });
     }
+    
+    // Find the level ObjectId by levelNumber
+    const levelDoc = await Level.findOne({ levelNumber: levelNum });
+    if (!levelDoc) {
+      return res.status(404).json({ message: 'Level not found' });
+    }
+    
+    const actualLevelObjectId = levelDoc._id;
 
     // Validate pagination params
     const limitNum = parseInt(limit);
@@ -23,14 +34,14 @@ exports.getLevelComments = async (req, res) => {
       return res.status(400).json({ message: 'Page must be a positive number' });
     }
 
-    const comments = await Comment.find({ level: levelId, isApproved: true })
+    const comments = await Comment.find({ level: actualLevelObjectId, isApproved: true })
       .populate('author', 'username avatar')
       .populate('replies.author', 'username avatar')
       .sort({ createdAt: -1 })
       .limit(limitNum)
       .skip((pageNum - 1) * limitNum);
 
-    const total = await Comment.countDocuments({ level: levelId, isApproved: true });
+    const total = await Comment.countDocuments({ level: actualLevelObjectId, isApproved: true });
 
     res.status(200).json({
       success: true,
@@ -49,10 +60,17 @@ exports.createComment = async (req, res) => {
   try {
     const { levelId, content, rating } = req.body;
 
-    // Validate levelId
-    if (!levelId || !isValidObjectId(levelId)) {
+    // Validate levelId (which is levelNumber from frontend)
+    if (!levelId || isNaN(parseInt(levelId))) {
       return res.status(400).json({ message: 'Invalid level ID' });
     }
+
+    // Find the level ObjectId by levelNumber
+    const levelDoc = await Level.findOne({ levelNumber: parseInt(levelId) });
+    if (!levelDoc) {
+      return res.status(404).json({ message: 'Level not found' });
+    }
+    const actualLevelObjectId = levelDoc._id;
 
     // Validate content
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
@@ -68,7 +86,7 @@ exports.createComment = async (req, res) => {
     }
 
     const comment = await Comment.create({
-      level: levelId,
+      level: actualLevelObjectId,
       author: req.user.id,
       content,
       rating: rating || null,

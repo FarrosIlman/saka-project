@@ -90,10 +90,13 @@ const completeLevel = async (req, res) => {
 
     await progress.save();
     
+    let streakData = { increased: false, current: 0 };
     // Update user stats (streak, XP, points)
     const user = await User.findById(req.user._id);
     if (user) {
-      updateStreakUtil(user);
+      const { updatedUser, streakIncreased } = updateStreakUtil(user);
+      streakData.increased = streakIncreased;
+      streakData.current = updatedUser.currentStreak;
       
       if (xpToAdd > 0) user.totalXP = (user.totalXP || 0) + xpToAdd;
       if (pointsToAdd > 0) user.totalPoints = (user.totalPoints || 0) + pointsToAdd;
@@ -139,6 +142,7 @@ const completeLevel = async (req, res) => {
       progress,
       unlockedAchievements,
       badgesAwarded,
+      streakData,
     });
   } catch (error) {
     console.error('Complete level error:', error);

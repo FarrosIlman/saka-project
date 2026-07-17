@@ -18,7 +18,7 @@ export default function LevelMaterialModal({ isOpen, onClose, level, onStartQuiz
           <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
               <BookOpen className="text-sky-500" size={24} />
-              Tips Sebelum Mulai
+              Tips Before Starting
             </h3>
             <button
               onClick={onClose}
@@ -39,7 +39,7 @@ export default function LevelMaterialModal({ isOpen, onClose, level, onStartQuiz
 
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 mb-2">
               <h5 className="text-sm font-bold text-amber-700 mb-3 flex items-center gap-2">
-                📖 Kosakata & Tips
+                📖 Vocabulary & Tips
               </h5>
               <div className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
                 {level.materialText}
@@ -54,7 +54,7 @@ export default function LevelMaterialModal({ isOpen, onClose, level, onStartQuiz
               className="w-full flex justify-center items-center gap-2 py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 hover:-translate-y-0.5 hover:shadow-lg transition-all"
             >
               <PlayCircle size={20} />
-              Mulai Kuis Sekarang
+              Start Quiz Now
             </button>
           </div>
         </motion.div>

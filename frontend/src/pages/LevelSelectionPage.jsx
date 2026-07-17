@@ -11,6 +11,7 @@ import LeaderboardWidget from '../components/gamification/LeaderboardWidget';
 import DailyQuestsWidget from '../components/gamification/DailyQuestsWidget';
 import LevelMaterialModal from '../components/modals/LevelMaterialModal';
 import HeartRefillModal from '../components/modals/HeartRefillModal';
+import { OnboardingTutorial } from '../components/gamification/OnboardingTutorial';
 import { motion } from 'framer-motion';
 import { 
   LogOut, Lock, CheckCircle2, 
@@ -29,24 +30,24 @@ export default function LevelSelectionPage() {
   const [hearts, setHearts] = useState(5);
   const [nextRegenTime, setNextRegenTime] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, completeTutorial } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Selamat Pagi";
-    if (hour < 18) return "Selamat Siang";
-    return "Selamat Malam";
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
   };
 
   const motivationalQuotes = [
-    "Siap menaklukkan tantangan baru hari ini?",
-    "Setiap kata yang kamu ucapkan membawamu lebih dekat pada kefasihan.",
-    "Progres belajarmu luar biasa! Ayo kita terus maju.",
-    "Kesalahan adalah bukti bahwa kamu sedang belajar.",
-    "Ayo kumpulkan skor sempurna hari ini!"
+    "Ready to conquer new challenges today?",
+    "Every word you speak brings you closer to fluency.",
+    "Your learning progress is amazing! Let's keep moving forward.",
+    "Mistakes are proof that you are trying.",
+    "Let's aim for a perfect score today!"
   ];
 
   const [quote] = useState(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
@@ -65,7 +66,7 @@ export default function LevelSelectionPage() {
       setHearts(heartsRes.data.hearts);
       setNextRegenTime(heartsRes.data.nextRegenTime);
     } catch (err) { 
-      error('Gagal memuat data dashboard.');
+      error('Failed to load dashboard data.');
     } finally { 
       setLoading(false); 
     }
@@ -75,7 +76,7 @@ export default function LevelSelectionPage() {
   const confirmLogout = () => {
     setShowLogoutModal(false);
     logout();
-    success('Berhasil keluar!');
+    success('Successfully logged out!');
     navigate('/');
   };
 
@@ -148,6 +149,7 @@ export default function LevelSelectionPage() {
           <div className="flex items-center gap-3 sm:gap-4">
             {/* HEARTS PILL */}
             <motion.div 
+              id="tutorial-target-hearts"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowHeartModal(true)}
@@ -212,7 +214,7 @@ export default function LevelSelectionPage() {
               transition={{ delay: 0.1 }}
               className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-2"
             >
-              Lanjutkan <span className="text-sky-500">Misi Belajarmu</span>
+              Continue <span className="text-sky-500">Your Mission</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -257,8 +259,9 @@ export default function LevelSelectionPage() {
                   className="w-full flex justify-center"
                 >
                   <motion.div 
+                    id={index === 0 && phase == 1 ? "tutorial-target-level" : undefined}
                     whileHover={!isLocked ? { scale: 1.05, y: -4 } : {}}
-                    className={`relative w-full max-w-[260px] sm:max-w-[280px] z-10 ${isLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`relative w-full max-w-[260px] sm:max-w-[280px] ${isLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
                     onClick={() => handleLevelClick(level)}
                   >
                     <div className={`glass-card p-3.5 transition-all duration-300 border-2 ${
@@ -320,7 +323,9 @@ export default function LevelSelectionPage() {
           <div className={`${activeMobileTab !== 'quests' ? 'hidden lg:block' : ''}`}>
             <div className="flex flex-col gap-6">
               <DailyRewardCard />
-              <DailyQuestsWidget />
+              <div id="tutorial-target-quests">
+                <DailyQuestsWidget />
+              </div>
             </div>
           </div>
 
@@ -352,7 +357,7 @@ export default function LevelSelectionPage() {
                 className="glass-card p-6"
               >
             <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 mb-4">
-              <Target size={22} className="text-sky-500" /> Progres Mastery
+              <Target size={22} className="text-sky-500" /> Mastery Progress
             </h3>
             <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden mb-2 relative">
               <motion.div 
@@ -363,7 +368,7 @@ export default function LevelSelectionPage() {
               />
             </div>
             <div className="flex justify-between items-center text-sm font-bold">
-              <span className="text-slate-500">{completedCount} dari {levels.length} Level</span>
+              <span className="text-slate-500">{completedCount} of {levels.length} Levels</span>
               <span className="text-emerald-500">{progressPercent}%</span>
             </div>
           </motion.div>
@@ -375,7 +380,7 @@ export default function LevelSelectionPage() {
             className="glass-card p-6"
           >
             <h3 className="flex items-center gap-2 text-lg font-black text-slate-900 mb-6">
-              <Award size={22} className="text-amber-500" /> Lencana Terbaru
+              <Award size={22} className="text-amber-500" /> Latest Badges
             </h3>
             <BadgeDisplay badges={badges} />
             
@@ -383,7 +388,7 @@ export default function LevelSelectionPage() {
               onClick={() => navigate('/profile')}
               className="w-full mt-6 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
             >
-              Lihat Profil Lengkap <ArrowRight size={18} />
+              View Full Profile <ArrowRight size={18} />
             </button>
             
             {/* Mobile Logout Button */}
@@ -404,6 +409,9 @@ export default function LevelSelectionPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 pb-safe z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
         <div className="flex justify-around items-center h-16 relative px-2">
           
+          {/* Target for tutorial: Highlights both Quests and Rankings (center of the screen) */}
+          <div id="tutorial-target-quests-mobile" className="absolute left-[25%] right-[25%] top-1 bottom-1 pointer-events-none"></div>
+          
           <button 
             onClick={() => setActiveMobileTab('home')}
             className="relative flex flex-col items-center w-full h-full"
@@ -420,7 +428,7 @@ export default function LevelSelectionPage() {
                 ? 'translate-y-0 opacity-100 text-sky-500' 
                 : 'translate-y-4 opacity-0 text-slate-400'
             }`}>
-              Belajar
+              Learn
             </span>
           </button>
 
@@ -440,7 +448,7 @@ export default function LevelSelectionPage() {
                 ? 'translate-y-0 opacity-100 text-sky-500' 
                 : 'translate-y-4 opacity-0 text-slate-400'
             }`}>
-              Misi
+              Quests
             </span>
           </button>
 
@@ -460,7 +468,7 @@ export default function LevelSelectionPage() {
                 ? 'translate-y-0 opacity-100 text-sky-500' 
                 : 'translate-y-4 opacity-0 text-slate-400'
             }`}>
-              Peringkat
+              Rankings
             </span>
           </button>
 
@@ -480,7 +488,7 @@ export default function LevelSelectionPage() {
                 ? 'translate-y-0 opacity-100 text-sky-500' 
                 : 'translate-y-4 opacity-0 text-slate-400'
             }`}>
-              Profil
+              Profile
             </span>
           </button>
 
@@ -489,11 +497,11 @@ export default function LevelSelectionPage() {
 
       <ConfirmationModal
         isOpen={showLogoutModal}
-        title="Yakin ingin keluar?"
-        message="Daily streak kamu akan tetap terjaga jika kamu sudah menyelesaikan misi hari ini."
+        title="Are you sure you want to log out?"
+        message="Your daily streak will be maintained if you have completed today's mission."
         onConfirm={confirmLogout}
         onClose={() => setShowLogoutModal(false)}
-        confirmText="Ya, Logout"
+        confirmText="Yes, Log Out"
         type="warning"
       />
 
@@ -517,6 +525,11 @@ export default function LevelSelectionPage() {
           if (selectedLevel) navigate(`/quiz/${selectedLevel.levelNumber}`);
         }}
       />
+
+      {/* Onboarding Tutorial Modal for New Users */}
+      {user && !user.hasCompletedTutorial && (
+        <OnboardingTutorial onComplete={completeTutorial} />
+      )}
     </div>
   );
 }

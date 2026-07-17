@@ -211,6 +211,25 @@ const getAllUsers = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Mark onboarding tutorial as completed
+// @route   PUT /api/user/tutorial-complete
+// @access  Private
+const completeTutorial = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  user.hasCompletedTutorial = true;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Tutorial marked as completed',
+  });
+});
+
 module.exports = {
   getProfile,
   updatePassword,
@@ -218,4 +237,5 @@ module.exports = {
   updatePreferences,
   updateStatus,
   getAllUsers,
+  completeTutorial,
 };

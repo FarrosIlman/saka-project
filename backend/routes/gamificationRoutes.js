@@ -11,7 +11,9 @@ const {
   claimQuestReward,
   getHeartStatus,
   deductHeart,
-  refillHearts
+  refillHearts,
+  practiceToHeal,
+  watchAdToHeal
 } = require('../controllers/gamificationController');
 const { protect } = require('../middleware/authMiddleware');
 const { validateObjectId } = require('../middleware/validationMiddleware');
@@ -28,5 +30,7 @@ router.post('/quests/claim', protect, claimQuestReward);
 router.get('/hearts/status', protect, getHeartStatus);
 router.post('/hearts/deduct', protect, deductHeart);
 router.post('/hearts/refill', protect, refillHearts);
+router.post('/hearts/practice-heal', protect, practiceToHeal);
+router.post('/hearts/watch-ad-heal', protect, watchAdToHeal);
 
 module.exports = router;

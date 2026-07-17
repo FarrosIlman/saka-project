@@ -31,7 +31,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     } catch (err) {
-      showError("Terjadi kesalahan koneksi.");
+      showError("Connection error occurred.");
       setLoading(false);
     }
   };
@@ -63,15 +63,15 @@ export default function LoginPage() {
             <span>SAKA Platform</span>
           </div>
           <h1 className="text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
-            Kembali <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">Berpetualang.</span>
+            Continue <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">Your Journey.</span>
           </h1>
           <p className="text-slate-300 text-lg max-w-md leading-relaxed mb-10">
-            Masuk ke akunmu untuk melanjutkan misi belajar bahasa Inggris yang menyenangkan hari ini!
+            Log in to your account to continue your fun English learning mission today!
           </p>
           
           <div className="flex items-center gap-4 text-sm font-medium text-slate-400">
             <ShieldCheck size={20} className="text-emerald-400"/>
-            Akses aman dan terenkripsi
+            Secure and encrypted access
           </div>
         </motion.div>
       </div>
@@ -88,8 +88,8 @@ export default function LoginPage() {
             <div className="inline-flex md:hidden items-center gap-2 px-4 py-2 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold mb-6">
               <Sparkles size={14} /> SAKA Platform
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Selamat Datang!</h2>
-            <p className="text-slate-500">Silakan masuk ke akun belajarmu.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back!</h2>
+            <p className="text-slate-500">Please log in to your learning account.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-11 pr-4 py-3.5 bg-white border-2 border-slate-100 rounded-2xl text-slate-900 font-medium focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
-                  placeholder="Masukkan username"
+                  placeholder="Enter your username"
                   required
                   disabled={loading}
                 />
@@ -141,14 +141,14 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:hover:translate-y-0"
             >
-              {loading ? <Loader2 size={20} className="animate-spin" /> : <><span>Masuk Sekarang</span><ArrowRight size={18} /></>}
+              {loading ? <Loader2 size={20} className="animate-spin" /> : <><span>Sign In</span><ArrowRight size={18} /></>}
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm font-medium text-slate-500">
-            Belum punya akun?{' '}
+            Don't have an account?{' '}
             <Link to="/register" className="text-sky-600 font-bold hover:text-sky-700 hover:underline decoration-2 underline-offset-4 transition-all">
-              Daftar sekarang
+              Register now
             </Link>
           </p>
         </motion.div>

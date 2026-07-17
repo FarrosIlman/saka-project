@@ -12,7 +12,10 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playDing, playBuzzer, playFanfare } from '../utils/audio';
+import { vibrateSuccess, vibrateError, vibrateTap, vibrateHeavy } from '../utils/haptics';
 import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
+import { StreakModal } from '../components/gamification/StreakModal';
+import { Mascot } from '../components/gamification/Mascot';
 
 export default function QuizPage() {
   const { levelNumber } = useParams();
@@ -39,6 +42,8 @@ export default function QuizPage() {
   const audioChunksRef = React.useRef([]);
   const [hearts, setHearts] = useState(5);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [mascotState, setMascotState] = useState('idle');
+  const [streakData, setStreakData] = useState(null);
 
   useEffect(() => { fetchQuestions(); }, [levelNumber]);
 
@@ -50,7 +55,7 @@ export default function QuizPage() {
       ]);
       
       if (heartRes.data.hearts <= 0) {
-        warning('Nyawa habis! Isi ulang nyawa untuk bermain.');
+        warning('Out of lives! Refill lives to play.');
         navigate('/levels');
         return;
       }
@@ -59,7 +64,7 @@ export default function QuizPage() {
       setQuestions(levelRes.data.questions || []);
       setLoading(false);
     } catch (err) {
-      error('Gagal memuat kuis.');
+      error('Failed to load quiz.');
       navigate('/levels');
     }
   };
@@ -86,7 +91,7 @@ export default function QuizPage() {
   const startListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      error('Browser tidak mendukung Speech Recognition.');
+      error('Browser does not support Speech Recognition.');
       return;
     }
 
@@ -111,7 +116,7 @@ export default function QuizPage() {
 
       const recognition = new SpeechRecognition();
       recognition.lang = 'en-US';
-      recognition.onstart = () => setIsListening(true);
+      recognition.onstart = () => { setIsListening(true); setMascotState('thinking'); };
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         processVoiceAnswer(transcript);
@@ -127,6 +132,7 @@ export default function QuizPage() {
       };
       recognition.onend = () => {
         setIsListening(false);
+        if (mascotState === 'thinking') setMascotState('idle');
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
           mediaRecorderRef.current.stop();
         }
@@ -134,7 +140,8 @@ export default function QuizPage() {
       recognition.start();
 
     }).catch(err => {
-      error('Izin mikrofon ditolak.');
+      error('Microphone permission denied.');
+      setMascotState('sad');
     });
   };
 
@@ -146,22 +153,31 @@ export default function QuizPage() {
     const maxSimilarity = Math.max(...similarities);
     const matchedIndex = similarities.indexOf(maxSimilarity);
     if (maxSimilarity >= 0.7) { checkAnswer(currentQuestion.options[matchedIndex]); } 
-    else { setFeedback(`Kamu bilang: "${transcript}". Coba lagi.`); }
+    else { 
+      setFeedback(`You said: "${transcript}". Try again.`); 
+      setMascotState('sad');
+      vibrateError();
+    }
   };
 
   const checkAnswer = async (option) => {
     setSelectedOption(option);
+    vibrateTap();
     try {
       const response = await levelAPI.checkAnswer({ questionId: currentQuestion._id, selectedOption: option });
       setCorrectAnswer(response.data.correctAnswer);
       setAnswered(true);
       if (response.data.correct) { 
         playDing();
-        setFeedback('Luar Biasa! Jawaban Benar.'); 
+        vibrateSuccess();
+        setMascotState('happy');
+        setFeedback('Excellent! Correct Answer.'); 
         setScore(score + 1); 
       } else { 
         playBuzzer();
-        setFeedback('Belum Tepat, Ayo Coba Lagi!'); 
+        vibrateError();
+        setMascotState('sad');
+        setFeedback("Not quite right, let's try again!"); 
         setMistakes(prev => {
           if (prev.some(m => m.question === currentQuestion.questionText)) return prev;
           return [...prev, {
@@ -175,15 +191,16 @@ export default function QuizPage() {
           const heartRes = await gamificationAPI.deductHeart();
           setHearts(heartRes.data.hearts);
           if (heartRes.data.hearts <= 0) {
+            vibrateHeavy();
             setTimeout(() => setShowGameOver(true), 1500);
           }
         } catch(e) {
-          console.error("Gagal mengurangi nyawa", e);
+          console.error("Failed to deduct lives", e);
         }
 
         handleIncorrectAnswer(); 
       }
-    } catch (err) { error('Gagal memeriksa jawaban.'); }
+    } catch (err) { error('Failed to check answer.'); }
   };
 
   const handleIncorrectAnswer = () => {
@@ -199,20 +216,27 @@ export default function QuizPage() {
       setSelectedOption('');
       setFeedback('');
       setAudioBlobUrl(null);
+      setMascotState('idle');
     } else { endQuiz(false); }
   };
 
   const endQuiz = async (failed) => {
-    if (failed) { warning('Kesempatan habis!'); navigate('/levels'); return; }
+    if (failed) { warning('Out of attempts!'); navigate('/levels'); return; }
     const finalScore = Math.round((score / questions.length) * 100);
     try {
       const response = await progressAPI.completeLevel({ levelNumber: Number(levelNumber), score: finalScore });
       setShowSummary(true);
       
+      if (response.data && response.data.streakData && response.data.streakData.increased) {
+        setTimeout(() => {
+          setStreakData(response.data.streakData);
+        }, 1000);
+      }
+
       if (response.data && response.data.badgesAwarded && response.data.badgesAwarded.length > 0) {
         setTimeout(() => {
           setNewBadges(response.data.badgesAwarded);
-        }, 1500);
+        }, 3000); // Tunda lebih lama jika ada streak modal muncul
       }
       
       if (finalScore === 100) {
@@ -233,7 +257,7 @@ export default function QuizPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <Loader2 className="animate-spin text-sky-500" size={50} />
-        <p className="mt-4 text-slate-500 font-bold animate-pulse">Menyiapkan Misi...</p>
+        <p className="mt-4 text-slate-500 font-bold animate-pulse">Preparing Mission...</p>
       </div>
     );
   }
@@ -250,12 +274,12 @@ export default function QuizPage() {
             <HeartCrack size={50} className="text-rose-500" />
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-2">Game Over!</h2>
-          <p className="text-slate-500 font-medium mb-8">Nyawa kamu telah habis. Silakan isi ulang nyawa di halaman utama untuk mencoba lagi.</p>
+          <p className="text-slate-500 font-medium mb-8">You have run out of lives. Please refill lives on the main page to try again.</p>
           <button 
             onClick={() => navigate('/levels')} 
             className="w-full py-4 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30"
           >
-            Kembali ke Beranda
+            Back to Home
           </button>
         </motion.div>
       </div>
@@ -268,13 +292,13 @@ export default function QuizPage() {
         <div className="relative z-10 w-full max-w-2xl mt-10">
           <div className="glass-card p-8 sm:p-10 text-center shadow-xl">
              <Trophy size={72} className="mx-auto text-amber-500 mb-6" />
-             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3 tracking-tight">Level Selesai!</h2>
-             <p className="text-lg font-bold text-slate-500 mb-8">Skor Akhir: <span className="text-sky-500">{Math.round((score / questions.length) * 100)}%</span></p>
+             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3 tracking-tight">Level Completed!</h2>
+             <p className="text-lg font-bold text-slate-500 mb-8">Final Score: <span className="text-sky-500">{Math.round((score / questions.length) * 100)}%</span></p>
 
              {mistakes.length > 0 && (
-               <div className="text-left mb-8 border-t border-slate-100 pt-8">
+                <div className="text-left mb-8 border-t border-slate-100 pt-8">
                  <h3 className="text-lg font-black text-slate-900 mb-5 flex items-center gap-2">
-                   <AlertCircle size={22} className="text-rose-500" /> Review Kesalahan
+                   <AlertCircle size={22} className="text-rose-500" /> Review Mistakes
                  </h3>
                  <div className="flex flex-col gap-4">
                    {mistakes.map((m, i) => (
@@ -282,10 +306,10 @@ export default function QuizPage() {
                        <p className="font-bold text-slate-900 mb-3">{m.question}</p>
                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-sm font-medium bg-white/50 p-3 rounded-xl">
                          <div className="flex items-center gap-2 text-rose-600">
-                           <XCircle size={16} /> Jawabanmu: <span className="italic" dangerouslySetInnerHTML={{__html: m.userAnswer}}></span>
+                           <XCircle size={16} /> Your answer: <span className="italic" dangerouslySetInnerHTML={{__html: m.userAnswer}}></span>
                          </div>
                          <div className="flex items-center gap-2 text-emerald-600">
-                           <CheckCircle2 size={16} /> Seharusnya: <span className="font-bold">{m.correctAnswer}</span>
+                           <CheckCircle2 size={16} /> Correct answer: <span className="font-bold">{m.correctAnswer}</span>
                          </div>
                        </div>
                      </div>
@@ -295,7 +319,7 @@ export default function QuizPage() {
              )}
 
              <button onClick={() => navigate('/levels')} className="w-full py-4 bg-slate-900 text-white text-lg font-black rounded-xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all">
-                Kembali ke Beranda
+                Back to Home
              </button>
           </div>
         </div>
@@ -331,7 +355,7 @@ export default function QuizPage() {
           
           <div className="flex-1">
             <div className="flex justify-between items-end mb-2">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Progres Kuis</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Quiz Progress</span>
               <span className="text-xs font-black text-sky-500">{currentQuestionIndex + 1} / {questions.length}</span>
             </div>
             <div className="w-full h-4 bg-slate-200 rounded-full p-1 shadow-inner">
@@ -434,21 +458,27 @@ export default function QuizPage() {
               })}
             </div>
 
-            {/* Microphone Interaction */}
-            <div className="flex flex-col items-center justify-center mb-4">
+            {/* Microphone Interaction & Mascot */}
+            <div className="flex flex-col items-center justify-center mb-4 mt-8">
+              
+              {/* Mascot centered above Mic */}
+              <div className="mb-4">
+                <Mascot state={mascotState} className="w-28 h-28 sm:w-36 sm:h-36" />
+              </div>
+
               <motion.button 
                 disabled={answered}
                 onClick={!answered ? startListening : null}
                 whileHover={!answered && !isListening ? { scale: 1.1, y: -5 } : {}}
                 whileTap={!answered ? { scale: 0.9 } : {}}
                 className={`
-                  relative w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
+                  relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10 bg-white
                   ${answered ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 
                     isListening ? 'bg-rose-500 border-rose-600 text-white shadow-lg shadow-rose-500/50' : 
-                    'bg-white border-sky-100 text-sky-500 shadow-lg shadow-slate-200 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
+                    'border-sky-100 text-sky-500 shadow-xl shadow-sky-100 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
                 `}
               >
-                <Mic size={28} strokeWidth={isListening ? 3 : 2.5} />
+                <Mic size={36} strokeWidth={isListening ? 3 : 2.5} />
                 
                 {/* Ripple Effect when listening */}
                 {isListening && (
@@ -462,7 +492,7 @@ export default function QuizPage() {
               <span className={`mt-4 font-black text-sm uppercase tracking-widest transition-colors ${
                 isListening ? 'text-rose-500' : answered ? 'text-slate-400' : 'text-sky-500'
               }`}>
-                {isListening ? 'Mendengarkan...' : answered ? 'Terkunci' : 'Ketuk & Bicara'}
+                {isListening ? 'Listening...' : answered ? 'Locked' : 'Tap & Speak'}
               </span>
             </div>
 
@@ -495,10 +525,10 @@ export default function QuizPage() {
                           audio.play();
                         }}
                         className="flex items-center gap-2 text-slate-700 font-bold hover:text-sky-600 transition-colors"
-                        title="Dengarkan suaramu"
+                        title="Listen to your voice"
                       >
                         <Volume2 size={20} />
-                        Dengarkan Suaramu
+                        Listen to Your Voice
                       </button>
                     </motion.div>
                   )}
@@ -518,7 +548,7 @@ export default function QuizPage() {
                   whileTap={{ scale: 0.98 }}
                   className="w-full mt-6 py-4 bg-slate-900 text-white text-base font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all"
                 >
-                  {currentQuestionIndex < questions.length - 1 ? 'Lanjut ke Soal Berikutnya' : 'Selesaikan Misi'}
+                  {currentQuestionIndex < questions.length - 1 ? 'Proceed to Next Question' : 'Complete Mission'}
                   <ChevronRight size={20} strokeWidth={3} />
                 </motion.button>
               )}
@@ -534,6 +564,9 @@ export default function QuizPage() {
       
       {/* Badge Unlock Modal */}
       <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />
+      
+      {/* Streak Fire Modal */}
+      <StreakModal streakData={streakData} onClose={() => setStreakData(null)} />
     </div>
   );
 }

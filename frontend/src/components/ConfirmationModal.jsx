@@ -9,8 +9,8 @@ export default function ConfirmationModal({
   onConfirm, 
   title, 
   message, 
-  confirmText = "Konfirmasi", 
-  cancelText = "Batal",
+  confirmText = "Confirm", 
+  cancelText = "Cancel",
   type = "warning" 
 }) {
   const [show, setShow] = useState(false);

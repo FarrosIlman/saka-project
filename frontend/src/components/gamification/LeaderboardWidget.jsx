@@ -80,7 +80,7 @@ const LeaderboardWidget = () => {
           <Loader2 className="animate-spin text-sky-500" />
         </div>
       ) : leaderboard.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center">Belum ada data.</p>
+        <p className="text-sm text-slate-500 text-center">No data yet.</p>
       ) : (
         <>
           {renderPodium()}

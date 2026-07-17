@@ -74,12 +74,22 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const completeTutorial = async () => {
+    try {
+      await userAPI.completeTutorial();
+      updateUser({ hasCompletedTutorial: true });
+    } catch (error) {
+      console.error('Failed to complete tutorial:', error);
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
     isAdmin,
     updateUser,
+    completeTutorial,
     loading,
   };
 

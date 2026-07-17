@@ -10,7 +10,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { validateObjectId, validateStringInput } = require('../middleware/validationMiddleware');
 
-router.get('/level/:levelId', validateObjectId('levelId'), getLevelComments);
+router.get('/level/:levelId', getLevelComments);
 router.post('/', protect, validateStringInput('content'), createComment);
 router.post('/:commentId/reply', protect, validateObjectId('commentId'), validateStringInput('content'), addReply);
 router.put('/:commentId/helpful', protect, validateObjectId('commentId'), markHelpful);

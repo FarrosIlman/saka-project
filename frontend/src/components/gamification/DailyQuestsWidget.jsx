@@ -28,11 +28,11 @@ export default function DailyQuestsWidget() {
     try {
       const response = await gamificationAPI.claimQuestReward(questId);
       if (response.data.success) {
-        success(`Berhasil klaim! +${response.data.xpGained} XP`);
+        success(`Successfully claimed! +${response.data.xpGained} XP`);
         setQuests(response.data.quests);
       }
     } catch (err) {
-      error('Gagal klaim hadiah misi.');
+      error('Failed to claim quest reward.');
     }
   };
 
@@ -54,16 +54,16 @@ export default function DailyQuestsWidget() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
         <h3 className="relative z-10 flex items-center gap-2 text-lg font-black text-white">
           <CalendarDays size={20} className="text-sky-400" /> 
-          Misi Harian
+          Daily Quests
         </h3>
         <p className="relative z-10 text-slate-400 text-xs font-medium mt-1">
-          Selesaikan misi untuk XP ekstra! Reset tiap hari.
+          Complete quests for extra XP! Resets daily.
         </p>
       </div>
 
       <div className="p-5 flex flex-col gap-4 bg-white/50">
         {quests.length === 0 ? (
-          <p className="text-center text-sm font-bold text-slate-400 py-4">Belum ada misi hari ini.</p>
+          <p className="text-center text-sm font-bold text-slate-400 py-4">No quests available today.</p>
         ) : (
           quests.map((quest) => {
             const isCompleted = quest.isCompleted;
@@ -107,7 +107,7 @@ export default function DailyQuestsWidget() {
                 {!isClaimed && (
                   <div className="mt-3">
                     <div className="flex justify-between items-end mb-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Progres</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
                       <span className={`text-[11px] font-bold ${isCompleted ? 'text-emerald-500' : 'text-sky-500'}`}>
                         {quest.progress} / {quest.target}
                       </span>

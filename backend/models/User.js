@@ -82,6 +82,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    hasCompletedTutorial: {
+      type: Boolean,
+      default: false,
+    },
 
     // Statistics
     totalXP: {
@@ -128,6 +132,15 @@ const userSchema = new mongoose.Schema(
     lastHeartRegen: {
       type: Date,
       default: Date.now,
+    },
+    practiceCountToday: {
+      type: Number,
+      default: 0,
+      max: 3,
+    },
+    lastPracticeDate: {
+      type: Date,
+      default: null,
     },
   },
   {

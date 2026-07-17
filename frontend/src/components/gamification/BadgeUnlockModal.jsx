@@ -45,13 +45,13 @@ export function BadgeUnlockModal({ badges, onClose }) {
           <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mb-6 shadow-inner relative border-4 border-white">
              <Trophy size={48} className="text-amber-500 drop-shadow-md" />
              <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/40 animate-bounce">
-               BARU!
+               NEW!
              </div>
           </div>
           
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2 leading-tight">Lencana Terbuka!</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2 leading-tight">Badge Unlocked!</h2>
           <p className="text-slate-500 font-medium mb-8 text-sm sm:text-base">
-            Luar biasa! Kamu baru saja mendapatkan {badges.length} lencana baru.
+            Amazing! You just earned {badges.length} new badges.
           </p>
 
           <div className="flex flex-col gap-3 w-full mb-8 max-h-[40vh] overflow-y-auto px-1 hide-scrollbar">
@@ -72,7 +72,7 @@ export function BadgeUnlockModal({ badges, onClose }) {
                      <h3 className="font-black text-slate-800 capitalize text-sm">
                        {meta.name}
                      </h3>
-                     <span className="text-xs font-bold text-amber-500">+{meta.points} Poin</span>
+                     <span className="text-xs font-bold text-amber-500">+{meta.points} Pts</span>
                    </div>
                 </motion.div>
               );
@@ -81,9 +81,9 @@ export function BadgeUnlockModal({ badges, onClose }) {
 
           <button 
             onClick={onClose}
-            className="w-full py-4 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/30 hover:shadow-sky-500/50 hover:-translate-y-1 active:translate-y-0"
+            className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/30 hover:shadow-sky-500/50 hover:-translate-y-1 active:translate-y-0"
           >
-            Lanjutkan Kuis
+            Continue Quiz
           </button>
         </motion.div>
       </div>

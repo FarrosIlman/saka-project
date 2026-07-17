@@ -104,7 +104,7 @@ const DailyRewardCard = () => {
           
           {canClaim ? (
             <div className="reward-items">
-              <span className="reward-item">+10 <strong>Points</strong></span>
+              <span className="reward-item">+2 <strong>Points</strong></span>
               <span className="reward-separator">•</span>
               <span className="reward-item">+25 <strong>XP</strong></span>
             </div>
