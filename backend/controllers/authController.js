@@ -106,6 +106,10 @@ const login = asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
+  // Automatically update streak on login
+  updateStreakUtil(user);
+  await user.save();
+
   // Generate token
   const token = generateToken(user._id);
 
