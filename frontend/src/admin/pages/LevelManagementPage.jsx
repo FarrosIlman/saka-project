@@ -19,7 +19,7 @@ export default function LevelManagementPage() {
   const [createModal, setCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTheme, setFilterTheme] = useState('all');
-  const [newLevel, setNewLevel] = useState({ levelNumber: '', title: '', theme: '', imageUrl: '' });
+  const [newLevel, setNewLevel] = useState({ levelNumber: '', title: '', theme: '', phase: 1, imageUrl: '', materialText: '' });
   const navigate = useNavigate();
 
   useEffect(() => { fetchLevels(); }, []);
@@ -72,11 +72,13 @@ export default function LevelManagementPage() {
         levelNumber: Number(newLevel.levelNumber),
         title: newLevel.title,
         theme: newLevel.theme,
-        imageUrl: newLevel.imageUrl
+        phase: Number(newLevel.phase),
+        imageUrl: newLevel.imageUrl,
+        materialText: newLevel.materialText
       });
       showToast.success(`Level "${newLevel.title}" created successfully`);
       setCreateModal(false);
-      setNewLevel({ levelNumber: '', title: '', theme: '', imageUrl: '' });
+      setNewLevel({ levelNumber: '', title: '', theme: '', phase: 1, imageUrl: '', materialText: '' });
       fetchLevels();
     } catch (err) { 
       showToast.error(err.response?.data?.message || 'Failed to create level');
@@ -94,17 +96,17 @@ export default function LevelManagementPage() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight mb-2">
-            <Layers className="text-sky-500" size={32} />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight mb-2">
+            <Layers className="text-sky-500" size={28} />
             Content Management
           </h1>
-          <p className="text-slate-500 font-medium">Kelola kurikulum dan tantangan berbicara untuk siswa.</p>
+          <p className="text-slate-500 text-sm sm:text-base font-medium">Kelola kurikulum dan tantangan berbicara untuk siswa.</p>
         </div>
         <button 
           onClick={() => setCreateModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all text-sm sm:text-base"
         >
-          <Plus size={20} /> New Level
+          <Plus size={18} /> New Level
         </button>
       </div>
 
@@ -169,36 +171,37 @@ export default function LevelManagementPage() {
                 key={level._id} 
                 className="glass-card bg-white group hover:-translate-y-2 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
               >
-                <div className="relative h-48 overflow-hidden bg-slate-100">
-                  <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black uppercase tracking-widest rounded-full border border-white/20 shadow-sm">
+                <div className="relative h-40 overflow-hidden bg-slate-100">
+                  <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-full border border-white/20 shadow-sm">
                     Level {level.levelNumber}
                   </div>
                   <img src={level.imageUrl} alt={level.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
                 </div>
                 
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-xl font-black text-slate-900 mb-1 line-clamp-1">{level.title}</h3>
-                  <p className="text-sm font-bold text-sky-600 mb-4">{level.theme}</p>
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-1">Phase {level.phase || 1}</div>
+                  <h3 className="text-lg font-black text-slate-900 mb-1 line-clamp-1">{level.title}</h3>
+                  <p className="text-xs font-bold text-slate-500 mb-3">{level.theme}</p>
                   
-                  <div className="flex items-center gap-2 text-slate-500 text-sm font-bold mb-6">
-                    <BookOpen size={16} />
+                  <div className="flex items-center gap-2 text-slate-500 text-xs font-bold mb-5">
+                    <BookOpen size={14} />
                     <span>{level.questions?.length || 0} Task Available</span>
                   </div>
 
-                  <div className="mt-auto flex gap-3 pt-4 border-t border-slate-100">
+                  <div className="mt-auto flex gap-2 pt-3 border-t border-slate-100">
                     <button 
                       onClick={() => navigate(`/admin/content/levels/${level._id}/edit`)}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-sky-50 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-sky-50 text-sky-600 text-sm font-bold rounded-xl hover:bg-sky-500 hover:text-white transition-colors"
                     >
-                      <Pencil size={16} /> Edit Tasks
+                      <Pencil size={14} /> Edit Tasks
                     </button>
                     <button 
                       onClick={() => handleDelete(level)}
-                      className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-rose-500 hover:text-white transition-colors"
+                      className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-rose-500 hover:text-white transition-colors"
                       title="Delete Level"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
@@ -223,59 +226,78 @@ export default function LevelManagementPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-lg bg-white rounded-[2rem] p-8 shadow-2xl"
+            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl"
           >
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-black text-slate-900">Create New Level</h2>
-              <button onClick={() => setCreateModal(false)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-colors">
-                <X size={24} />
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-black text-slate-900">Create New Level</h2>
+              <button onClick={() => setCreateModal(false)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+                <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleCreateLevel} className="space-y-5">
+            <form onSubmit={handleCreateLevel} className="space-y-3">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Level Number</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Level Number</label>
                 <input 
                   type="number" required 
                   value={newLevel.levelNumber} 
                   onChange={e => setNewLevel({...newLevel, levelNumber: e.target.value})} 
                   placeholder="Ex: 1" 
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Level Title</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Level Title</label>
                 <input 
                   type="text" required 
                   value={newLevel.title} 
                   onChange={e => setNewLevel({...newLevel, title: e.target.value})} 
                   placeholder="Ex: Greeting & Introduction" 
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Theme Description</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Theme Description</label>
                 <input 
                   type="text" required 
                   value={newLevel.theme} 
                   onChange={e => setNewLevel({...newLevel, theme: e.target.value})} 
                   placeholder="Ex: Basic communication skills" 
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Thumbnail URL</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Phase</label>
+                <input 
+                  type="number" required min="1"
+                  value={newLevel.phase} 
+                  onChange={e => setNewLevel({...newLevel, phase: e.target.value})} 
+                  placeholder="Ex: 1" 
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Thumbnail URL</label>
                 <input 
                   type="url" required 
                   value={newLevel.imageUrl} 
                   onChange={e => setNewLevel({...newLevel, imageUrl: e.target.value})} 
                   placeholder="https://..." 
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium"
                 />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Material/Tips (Optional)</label>
+                <textarea 
+                  value={newLevel.materialText} 
+                  onChange={e => setNewLevel({...newLevel, materialText: e.target.value})} 
+                  placeholder="Tips singkat sebelum memulai kuis..." 
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-lg focus:border-sky-500 focus:outline-none transition-colors text-sm font-medium resize-none h-20"
+                ></textarea>
+              </div>
               
-              <div className="pt-4">
-                <button type="submit" className="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+              <div className="pt-2">
+                <button type="submit" className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition-colors text-sm">
                   Create Level Now
                 </button>
               </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Lock, Trophy } from 'lucide-react';
 
 export function AchievementBadge({ achievement, isUnlocked = true }) {
   const styles = `
@@ -111,8 +112,8 @@ export function AchievementBadge({ achievement, isUnlocked = true }) {
   return (
     <>
       <div className="achievement-badge">
-        {!isUnlocked && <div className="locked-badge">🔒</div>}
-        <div className="achievement-icon">{achievement.icon || '🏆'}</div>
+        {!isUnlocked && <div className="locked-badge"><Lock size={12} /></div>}
+        <div className="achievement-icon">{achievement.icon || <Trophy size={32} />}</div>
         <div className="achievement-name">{achievement.name}</div>
         <div className="achievement-description">{achievement.description}</div>
         {isUnlocked && achievement.unlockedAt && (

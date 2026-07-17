@@ -182,19 +182,19 @@ export default function StudentProfilePage() {
         >
           <button 
             onClick={() => navigate('/levels')}
-            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border-2 border-slate-200 rounded-xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white border-2 border-slate-200 rounded-xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
           >
-            <ArrowLeft size={24} strokeWidth={2.5} />
+            <ArrowLeft size={20} strokeWidth={2.5} />
           </button>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Profil Saya</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Profil Saya</h1>
         </motion.div>
 
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
           
           {/* User Info Card */}
-          <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
-            <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
-              <User size={24} className="text-sky-500" />
+          <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6">
+            <h2 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 mb-5 border-b border-slate-200 pb-3">
+              <User size={20} className="text-sky-500" />
               Informasi Akun
             </h2>
             
@@ -218,26 +218,26 @@ export default function StudentProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-emerald-500/30 transform transition-transform hover:-translate-y-1">
-                <span className="block text-4xl font-black mb-1">{profileData?.totallevelsCompleted || 0}</span>
-                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Level Selesai</span>
+              <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-5 rounded-2xl text-white text-center shadow-lg shadow-emerald-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-3xl font-black mb-1">{profileData?.totallevelsCompleted || 0}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Level Selesai</span>
               </div>
-              <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-amber-500/30 transform transition-transform hover:-translate-y-1">
-                <span className="block text-4xl font-black mb-1">{profileData?.averageScore || 0}%</span>
-                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Rata-rata Skor</span>
+              <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-5 rounded-2xl text-white text-center shadow-lg shadow-amber-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-3xl font-black mb-1">{profileData?.averageScore || 0}%</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Rata-rata Skor</span>
               </div>
-              <div className="bg-gradient-to-br from-sky-400 to-sky-600 p-6 rounded-2xl text-white text-center shadow-lg shadow-sky-500/30 transform transition-transform hover:-translate-y-1">
-                <span className="block text-4xl font-black mb-1">{profileData?.streak || 0}</span>
-                <span className="text-xs font-bold uppercase tracking-widest opacity-90">Hari Beruntun</span>
+              <div className="bg-gradient-to-br from-sky-400 to-sky-600 p-5 rounded-2xl text-white text-center shadow-lg shadow-sky-500/30 transform transition-transform hover:-translate-y-1">
+                <span className="block text-3xl font-black mb-1">{profileData?.streak || 0}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Hari Beruntun</span>
               </div>
             </div>
           </motion.div>
 
           {/* Progress Chart Card */}
           {progressData && progressData.levelProgress.length > 0 && (
-            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
-              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
-                <TrendingUp size={24} className="text-indigo-500" />
+            <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6">
+              <h2 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 mb-5 border-b border-slate-200 pb-3">
+                <TrendingUp size={20} className="text-indigo-500" />
                 Grafik Progres
               </h2>
               
@@ -291,9 +291,9 @@ export default function StudentProfilePage() {
 
           {/* Achievements */}
           {achievements && (
-            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
-              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
-                <Trophy size={24} className="text-amber-500" />
+            <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6">
+              <h2 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 mb-5 border-b border-slate-200 pb-3">
+                <Trophy size={20} className="text-amber-500" />
                 Prestasi & Lencana
               </h2>
               
@@ -317,9 +317,9 @@ export default function StudentProfilePage() {
 
           {/* Settings & Export */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8">
-              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
-                <Lock size={24} className="text-rose-500" />
+            <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6">
+              <h2 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 mb-5 border-b border-slate-200 pb-3">
+                <Lock size={20} className="text-rose-500" />
                 Keamanan
               </h2>
               <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -380,9 +380,9 @@ export default function StudentProfilePage() {
               </form>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 flex flex-col">
-              <h2 className="flex items-center gap-3 text-xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">
-                <Download size={24} className="text-emerald-500" />
+            <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6 flex flex-col">
+              <h2 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 mb-5 border-b border-slate-200 pb-3">
+                <Download size={20} className="text-emerald-500" />
                 Data & Akun
               </h2>
               

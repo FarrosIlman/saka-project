@@ -61,11 +61,11 @@ export default function AdminDashboardPage() {
     >
       <header className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <motion.div variants={itemVariants}>
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-            <LayoutDashboard className="text-sky-500" size={32} />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
+            <LayoutDashboard className="text-sky-500" size={28} />
             Dashboard Overview
           </h1>
-          <p className="text-slate-500 font-medium mt-2">Ringkasan aktivitas dan performa platform SAKA.</p>
+          <p className="text-slate-500 text-sm sm:text-base font-medium mt-2">Ringkasan aktivitas dan performa platform SAKA.</p>
         </motion.div>
         
         <motion.div variants={itemVariants} className="bg-white/60 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -88,8 +88,8 @@ export default function AdminDashboardPage() {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 bg-white/80">
-          <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+        <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6 bg-white/80">
+          <h3 className="text-base sm:text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
             <Activity size={20} className="text-sky-500" /> User Registrations (30 Days)
           </h3>
           <div className="h-[300px] w-full">
@@ -108,8 +108,8 @@ export default function AdminDashboardPage() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 bg-white/80">
-          <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+        <motion.div variants={itemVariants} className="glass-card p-5 sm:p-6 bg-white/80">
+          <h3 className="text-base sm:text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
             <Star size={20} className="text-sky-500" /> Performance per Level
           </h3>
           <div className="h-[300px] w-full">
@@ -145,14 +145,14 @@ function StatCard({ icon, title, value, color }) {
     <motion.div 
       variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
       whileHover={{ y: -5 }}
-      className={`glass-card bg-white/80 p-6 flex items-center gap-5 transition-all duration-300 group hover:shadow-xl border border-transparent hover:border-${color}-100 ${shadowMap[color]}`}
+      className={`glass-card bg-white/80 p-5 flex items-center gap-4 transition-all duration-300 group hover:shadow-xl border border-transparent hover:border-${color}-100 ${shadowMap[color]}`}
     >
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors duration-300 ${colorMap[color]}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors duration-300 ${colorMap[color]}`}>
         {icon}
       </div>
       <div>
-        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{title}</h4>
-        <div className="text-3xl font-black text-slate-900 tracking-tight">{value}</div>
+        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</h4>
+        <div className="text-2xl font-black text-slate-900 tracking-tight">{value}</div>
       </div>
     </motion.div>
   );

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Gift, Check, Clock } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 import './DailyRewardCard.css';
 
 const DailyRewardCard = () => {
+  const { user, updateUser } = useAuth();
   const [canClaim, setCanClaim] = useState(true);
   const [lastClaimed, setLastClaimed] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -42,9 +44,15 @@ const DailyRewardCard = () => {
         const { pointsEarned, xpGained } = response.data;
         setLastClaimed(new Date());
         
-        toast.success(`🎉 Claimed! +${pointsEarned} points +${xpGained} XP`, {
-          duration: 3000,
-          icon: '🎁'
+        if (user && updateUser) {
+          updateUser({
+            totalPoints: (user.totalPoints || 0) + pointsEarned,
+            totalXP: (user.totalXP || 0) + xpGained
+          });
+        }
+        
+        toast.success(`Claimed! +${pointsEarned} points +${xpGained} XP`, {
+          duration: 3000
         });
       }
     } catch (error) {

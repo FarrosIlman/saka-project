@@ -1,19 +1,19 @@
 import React from 'react';
-import { Bell, X, Check, Trash2 } from 'lucide-react';
+import { Bell, X, Check, Trash2, Award, Sparkles, Target, TrendingUp, Megaphone, BookOpen, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function NotificationPanel({ notifications = [], unreadCount, onClose, onMarkAsRead, onDelete, onMarkAllAsRead }) {
   const getIcon = (type) => {
     const icons = {
-      achievement_unlock: '🏆',
-      level_completed: '✨',
-      score_milestone: '🎯',
-      leaderboard_change: '📈',
-      announcement: '📢',
-      course_update: '📚',
-      reminder: '⏰',
+      achievement_unlock: <Award size={20} className="text-amber-500" />,
+      level_completed: <Sparkles size={20} className="text-sky-500" />,
+      score_milestone: <Target size={20} className="text-rose-500" />,
+      leaderboard_change: <TrendingUp size={20} className="text-emerald-500" />,
+      announcement: <Megaphone size={20} className="text-blue-500" />,
+      course_update: <BookOpen size={20} className="text-purple-500" />,
+      reminder: <Clock size={20} className="text-orange-500" />,
     };
-    return icons[type] || '📬';
+    return icons[type] || <Bell size={20} className="text-slate-500" />;
   };
 
   const getPriorityColor = (priority) => {

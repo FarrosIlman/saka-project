@@ -18,6 +18,16 @@ const levelSchema = new mongoose.Schema(
       required: [true, 'Level theme is required'],
       trim: true,
     },
+    phase: {
+      type: Number,
+      required: [true, 'Level phase is required'],
+      min: [1, 'Phase must be at least 1'],
+      default: 1,
+    },
+    materialText: {
+      type: String,
+      default: '',
+    },
     imageUrl: {
       type: String,
       required: [true, 'Level image URL is required'],

@@ -61,8 +61,18 @@ const completeLevel = async (req, res) => {
 
     const currentLevel = progress.levelProgress[levelIndex];
 
-    // Update score if it's higher
+    let pointsToAdd = 0;
+    let xpToAdd = 0;
+
+    // Update score if it's higher and calculate rewards based on the difference
     if (score > currentLevel.highScore) {
+      const scoreDiff = score - (currentLevel.highScore || 0);
+      
+      // Rebalancing: 100% score = 10 points (scoreDiff / 10)
+      pointsToAdd = Math.round(scoreDiff / 10);
+      // Rebalancing: 100% score = 20 XP (scoreDiff / 5)
+      xpToAdd = Math.round(scoreDiff / 5);
+
       currentLevel.highScore = score;
     }
 
@@ -84,8 +94,33 @@ const completeLevel = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (user) {
       updateStreakUtil(user);
-      user.totalXP = (user.totalXP || 0) + Math.round(score * 1.5);
-      user.totalPoints = (user.totalPoints || 0) + Math.round(score);
+      
+      if (xpToAdd > 0) user.totalXP = (user.totalXP || 0) + xpToAdd;
+      if (pointsToAdd > 0) user.totalPoints = (user.totalPoints || 0) + pointsToAdd;
+
+      // Update Daily Quests
+      if (user.dailyQuests && user.dailyQuests.length > 0) {
+        // Check "complete_quiz" quest
+        const completeQuest = user.dailyQuests.find(q => q.questType === 'complete_quiz');
+        if (completeQuest && !completeQuest.isCompleted) {
+          completeQuest.progress += 1;
+          if (completeQuest.progress >= completeQuest.target) {
+            completeQuest.progress = completeQuest.target;
+            completeQuest.isCompleted = true;
+          }
+        }
+
+        // Check "perfect_score" quest
+        const perfectQuest = user.dailyQuests.find(q => q.questType === 'perfect_score');
+        if (perfectQuest && !perfectQuest.isCompleted && score === 100) {
+          perfectQuest.progress += 1;
+          if (perfectQuest.progress >= perfectQuest.target) {
+            perfectQuest.progress = perfectQuest.target;
+            perfectQuest.isCompleted = true;
+          }
+        }
+      }
+
       await user.save();
     }
 

@@ -147,6 +147,15 @@ export default function LevelEditPage() {
                 />
               </div>
               <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Phase</label>
+                <input
+                  type="number" required min="1"
+                  value={level.phase || 1}
+                  onChange={(e) => setLevel({ ...level, phase: Number(e.target.value) })}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium"
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Image URL</label>
                 <input
                   type="url" required
@@ -159,6 +168,15 @@ export default function LevelEditPage() {
                     <img src={level.imageUrl} alt="Thumbnail preview" className="w-full h-full object-cover" />
                   </div>
                 )}
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Material/Tips (Optional)</label>
+                <textarea
+                  value={level.materialText || ''}
+                  onChange={(e) => setLevel({ ...level, materialText: e.target.value })}
+                  placeholder="Tips singkat sebelum kuis..."
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:outline-none transition-colors font-medium resize-none h-24"
+                />
               </div>
               <div className="pt-2">
                 <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl hover:bg-sky-500 hover:text-white transition-colors">

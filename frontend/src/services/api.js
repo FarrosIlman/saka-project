@@ -113,6 +113,11 @@ export const gamificationAPI = {
   getStreakInfo: () => api.get('/gamification/streak'),
   claimDailyReward: () => api.post('/gamification/claim-daily-reward'),
   checkDailyRewardStatus: () => api.get('/gamification/daily-reward-status'),
+  getDailyQuests: () => api.get('/gamification/quests'),
+  claimQuestReward: (questId) => api.post('/gamification/quests/claim', { questId }),
+  getHeartStatus: () => api.get('/gamification/hearts/status'),
+  deductHeart: () => api.post('/gamification/hearts/deduct'),
+  refillHearts: () => api.post('/gamification/hearts/refill'),
 };
 
 export default api;

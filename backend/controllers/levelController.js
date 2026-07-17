@@ -24,7 +24,7 @@ const getAllLevels = async (req, res) => {
 const getStudentLevels = async (req, res) => {
   try {
     const levels = await Level.find()
-      .select('levelNumber title theme imageUrl')
+      .select('levelNumber title theme phase imageUrl')
       .sort({ levelNumber: 1 });
 
     // Get user's progress
@@ -40,6 +40,7 @@ const getStudentLevels = async (req, res) => {
         levelNumber: level.levelNumber,
         title: level.title,
         theme: level.theme,
+        phase: level.phase || 1,
         imageUrl: level.imageUrl,
         status: levelProgress?.status || 'locked',
         highScore: levelProgress?.highScore || 0,
@@ -86,6 +87,7 @@ const getLevelQuestions = async (req, res) => {
         levelNumber: level.levelNumber,
         title: level.title,
         theme: level.theme,
+        phase: level.phase || 1,
         imageUrl: level.imageUrl,
       },
       questions,
@@ -130,7 +132,7 @@ const checkAnswer = async (req, res) => {
 // @access  Admin
 const createLevel = async (req, res) => {
   try {
-    const { levelNumber, title, theme, imageUrl } = req.body;
+    const { levelNumber, title, theme, phase, imageUrl } = req.body;
 
     // Validate input
     if (!levelNumber || !title || !theme || !imageUrl) {
@@ -147,6 +149,7 @@ const createLevel = async (req, res) => {
       levelNumber,
       title,
       theme,
+      phase: phase || 1,
       imageUrl,
       questions: [],
     });
@@ -181,7 +184,7 @@ const createLevel = async (req, res) => {
 const updateLevel = async (req, res) => {
   try {
     const { levelId } = req.params;
-    const { title, theme, imageUrl } = req.body;
+    const { title, theme, phase, imageUrl } = req.body;
 
     const level = await Level.findById(levelId);
 
@@ -191,6 +194,7 @@ const updateLevel = async (req, res) => {
 
     if (title) level.title = title;
     if (theme) level.theme = theme;
+    if (phase) level.phase = phase;
     if (imageUrl) level.imageUrl = imageUrl;
 
     await level.save();

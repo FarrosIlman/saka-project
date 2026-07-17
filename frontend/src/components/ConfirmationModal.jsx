@@ -60,9 +60,9 @@ export default function ConfirmationModal({
     .modal-content {
       background: white;
       width: 100%;
-      max-width: 420px;
-      border-radius: 28px;
-      padding: 32px;
+      max-width: 380px;
+      border-radius: 20px;
+      padding: 24px;
       /* Shadow sangat dalam agar terlihat melayang di atas card dashboard */
       box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.4);
       transform: ${isOpen ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(20px)'};
@@ -74,13 +74,13 @@ export default function ConfirmationModal({
     }
 
     .icon-wrapper {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
+      margin: 0 auto 16px;
     }
 
     .icon-warning { color: #f59e0b; background: #fef3c7; }
@@ -88,18 +88,18 @@ export default function ConfirmationModal({
     .icon-success { color: #10b981; background: #ecfdf5; }
 
     .modal-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       color: #0f172a;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       letter-spacing: -0.02em;
     }
 
     .modal-message {
-      font-size: 15px;
+      font-size: 14px;
       color: #64748b;
-      line-height: 1.6;
-      margin-bottom: 32px;
+      line-height: 1.5;
+      margin-bottom: 24px;
     }
 
     .modal-actions {
@@ -109,9 +109,9 @@ export default function ConfirmationModal({
     }
 
     .btn-modal {
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 14px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;

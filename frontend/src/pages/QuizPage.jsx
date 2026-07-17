@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { levelAPI, progressAPI } from '../services/api';
+import { levelAPI, progressAPI, gamificationAPI } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 import CommentSection from '../components/discussion/CommentSection';
@@ -8,8 +8,11 @@ import stringSimilarity from 'string-similarity';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mic, ChevronRight, CheckCircle2, 
-  XCircle, AlertCircle, ArrowLeft, Loader2, Play, Pause, Square, Volume2, Sparkles, Trophy
+  XCircle, AlertCircle, ArrowLeft, Loader2, Play, Pause, Square, Volume2, Sparkles, Trophy, Turtle, Heart, HeartCrack
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { playDing, playBuzzer, playFanfare } from '../utils/audio';
+import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
 
 export default function QuizPage() {
   const { levelNumber } = useParams();
@@ -28,13 +31,32 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [mistakes, setMistakes] = useState([]);
+  const [showSummary, setShowSummary] = useState(false);
+  const [newBadges, setNewBadges] = useState([]);
+  const [audioBlobUrl, setAudioBlobUrl] = useState(null);
+  const mediaRecorderRef = React.useRef(null);
+  const audioChunksRef = React.useRef([]);
+  const [hearts, setHearts] = useState(5);
+  const [showGameOver, setShowGameOver] = useState(false);
 
   useEffect(() => { fetchQuestions(); }, [levelNumber]);
 
   const fetchQuestions = async () => {
     try {
-      const response = await levelAPI.getLevelQuestions(levelNumber);
-      setQuestions(response.data.questions || []);
+      const [levelRes, heartRes] = await Promise.all([
+        levelAPI.getLevelQuestions(levelNumber),
+        gamificationAPI.getHeartStatus()
+      ]);
+      
+      if (heartRes.data.hearts <= 0) {
+        warning('Nyawa habis! Isi ulang nyawa untuk bermain.');
+        navigate('/levels');
+        return;
+      }
+      
+      setHearts(heartRes.data.hearts);
+      setQuestions(levelRes.data.questions || []);
       setLoading(false);
     } catch (err) {
       error('Gagal memuat kuis.');
@@ -44,12 +66,17 @@ export default function QuizPage() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  const speakQuestion = useCallback(() => {
+  const shuffledOptions = React.useMemo(() => {
+    if (!currentQuestion?.options) return [];
+    return [...currentQuestion.options].sort(() => Math.random() - 0.5);
+  }, [currentQuestion]);
+
+  const speakQuestion = useCallback((rate = 0.9) => {
     if (!currentQuestion) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(currentQuestion.questionText);
     utterance.lang = 'en-US';
-    utterance.rate = 0.9;
+    utterance.rate = rate;
     utterance.volume = volume;
     utterance.onstart = () => setIsPlaying(true);
     utterance.onend = () => setIsPlaying(false);
@@ -62,16 +89,53 @@ export default function QuizPage() {
       error('Browser tidak mendukung Speech Recognition.');
       return;
     }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.onstart = () => setIsListening(true);
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      processVoiceAnswer(transcript);
-    };
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
+
+    setAudioBlobUrl(null);
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = e => {
+        audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioBlobUrl(audioUrl);
+      };
+
+      mediaRecorder.start();
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        processVoiceAnswer(transcript);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+      };
+      recognition.onerror = () => {
+        setIsListening(false);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+      };
+      recognition.onend = () => {
+        setIsListening(false);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+      };
+      recognition.start();
+
+    }).catch(err => {
+      error('Izin mikrofon ditolak.');
+    });
   };
 
   const processVoiceAnswer = (transcript) => {
@@ -92,10 +156,31 @@ export default function QuizPage() {
       setCorrectAnswer(response.data.correctAnswer);
       setAnswered(true);
       if (response.data.correct) { 
-        setFeedback('Luar Biasa! Jawaban Benar. ✨'); 
+        playDing();
+        setFeedback('Luar Biasa! Jawaban Benar.'); 
         setScore(score + 1); 
       } else { 
+        playBuzzer();
         setFeedback('Belum Tepat, Ayo Coba Lagi!'); 
+        setMistakes(prev => {
+          if (prev.some(m => m.question === currentQuestion.questionText)) return prev;
+          return [...prev, {
+            question: currentQuestion.questionText,
+            userAnswer: String(option).replace(/</g, "&lt;").replace(/>/g, "&gt;"),
+            correctAnswer: response.data.correctAnswer
+          }];
+        });
+        
+        try {
+          const heartRes = await gamificationAPI.deductHeart();
+          setHearts(heartRes.data.hearts);
+          if (heartRes.data.hearts <= 0) {
+            setTimeout(() => setShowGameOver(true), 1500);
+          }
+        } catch(e) {
+          console.error("Gagal mengurangi nyawa", e);
+        }
+
         handleIncorrectAnswer(); 
       }
     } catch (err) { error('Gagal memeriksa jawaban.'); }
@@ -113,6 +198,7 @@ export default function QuizPage() {
       setAnswered(false);
       setSelectedOption('');
       setFeedback('');
+      setAudioBlobUrl(null);
     } else { endQuiz(false); }
   };
 
@@ -120,17 +206,99 @@ export default function QuizPage() {
     if (failed) { warning('Kesempatan habis!'); navigate('/levels'); return; }
     const finalScore = Math.round((score / questions.length) * 100);
     try {
-      await progressAPI.completeLevel({ levelNumber: Number(levelNumber), score: finalScore });
-      success(`Selesai! Skormu: ${finalScore}%`);
-      navigate('/levels');
+      const response = await progressAPI.completeLevel({ levelNumber: Number(levelNumber), score: finalScore });
+      setShowSummary(true);
+      
+      if (response.data && response.data.badgesAwarded && response.data.badgesAwarded.length > 0) {
+        setTimeout(() => {
+          setNewBadges(response.data.badgesAwarded);
+        }, 1500);
+      }
+      
+      if (finalScore === 100) {
+        playFanfare();
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#0ea5e9', '#f59e0b', '#10b981', '#f43f5e']
+        });
+      } else if (finalScore >= 80) {
+        playDing();
+      }
     } catch (err) { navigate('/levels'); }
   };
 
-  if (loading || (questions.length > 0 && !currentQuestion)) {
+  if (loading || (questions.length > 0 && !currentQuestion && !showSummary && !showGameOver)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <Loader2 className="animate-spin text-sky-500" size={50} />
         <p className="mt-4 text-slate-500 font-bold animate-pulse">Menyiapkan Misi...</p>
+      </div>
+    );
+  }
+
+  if (showGameOver) {
+    return (
+      <div className="relative min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="glass-card max-w-md w-full p-8 text-center"
+        >
+          <div className="w-24 h-24 mx-auto bg-rose-100 rounded-full flex items-center justify-center mb-6">
+            <HeartCrack size={50} className="text-rose-500" />
+          </div>
+          <h2 className="text-3xl font-black text-slate-900 mb-2">Game Over!</h2>
+          <p className="text-slate-500 font-medium mb-8">Nyawa kamu telah habis. Silakan isi ulang nyawa di halaman utama untuk mencoba lagi.</p>
+          <button 
+            onClick={() => navigate('/levels')} 
+            className="w-full py-4 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30"
+          >
+            Kembali ke Beranda
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (showSummary) {
+    return (
+      <div className="relative min-h-screen bg-slate-50 bg-grid-pattern overflow-x-hidden flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="relative z-10 w-full max-w-2xl mt-10">
+          <div className="glass-card p-8 sm:p-10 text-center shadow-xl">
+             <Trophy size={72} className="mx-auto text-amber-500 mb-6" />
+             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3 tracking-tight">Level Selesai!</h2>
+             <p className="text-lg font-bold text-slate-500 mb-8">Skor Akhir: <span className="text-sky-500">{Math.round((score / questions.length) * 100)}%</span></p>
+
+             {mistakes.length > 0 && (
+               <div className="text-left mb-8 border-t border-slate-100 pt-8">
+                 <h3 className="text-lg font-black text-slate-900 mb-5 flex items-center gap-2">
+                   <AlertCircle size={22} className="text-rose-500" /> Review Kesalahan
+                 </h3>
+                 <div className="flex flex-col gap-4">
+                   {mistakes.map((m, i) => (
+                     <div key={i} className="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
+                       <p className="font-bold text-slate-900 mb-3">{m.question}</p>
+                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-sm font-medium bg-white/50 p-3 rounded-xl">
+                         <div className="flex items-center gap-2 text-rose-600">
+                           <XCircle size={16} /> Jawabanmu: <span className="italic" dangerouslySetInnerHTML={{__html: m.userAnswer}}></span>
+                         </div>
+                         <div className="flex items-center gap-2 text-emerald-600">
+                           <CheckCircle2 size={16} /> Seharusnya: <span className="font-bold">{m.correctAnswer}</span>
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
+
+             <button onClick={() => navigate('/levels')} className="w-full py-4 bg-slate-900 text-white text-lg font-black rounded-xl hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all">
+                Kembali ke Beranda
+             </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -156,9 +324,9 @@ export default function QuizPage() {
         >
           <button 
             onClick={() => navigate('/levels')} 
-            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border-2 border-slate-200 rounded-2xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white border-2 border-slate-200 rounded-xl text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
           >
-            <ArrowLeft size={24} strokeWidth={2.5} />
+            <ArrowLeft size={20} strokeWidth={2.5} />
           </button>
           
           <div className="flex-1">
@@ -177,20 +345,9 @@ export default function QuizPage() {
           </div>
           
           {/* Hearts / Lives */}
-          <div className="flex-shrink-0 flex gap-1.5">
-            {[...Array(3)].map((_, i) => (
-              <motion.div 
-                key={i}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <XCircle 
-                  size={28} 
-                  className={`transition-colors duration-300 ${i < incorrectAttempts ? 'text-rose-500 fill-rose-100' : 'text-slate-300 fill-slate-200/50'}`}
-                />
-              </motion.div>
-            ))}
+          <div className="flex-shrink-0 flex gap-1.5 items-center bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100">
+            <Heart size={18} className="text-rose-500" fill="currentColor" />
+            <span className="font-black text-rose-600">{hearts}</span>
           </div>
         </motion.div>
 
@@ -202,10 +359,10 @@ export default function QuizPage() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-full glass-card p-6 sm:p-8 relative"
+            className="w-full glass-card p-5 sm:p-6 relative"
           >
             {/* Image Container */}
-            <div className="relative w-full h-48 sm:h-64 rounded-3xl overflow-hidden mb-8 border-4 border-white shadow-md bg-slate-100">
+            <div className="relative w-full h-40 sm:h-56 rounded-3xl overflow-hidden mb-6 border-4 border-white shadow-md bg-slate-100">
               {currentQuestion?.imageUrl ? (
                 <img src={currentQuestion.imageUrl} alt="Quiz" className="w-full h-full object-cover" />
               ) : (
@@ -224,7 +381,14 @@ export default function QuizPage() {
                   className="w-16 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" 
                 />
                 <button 
-                  onClick={isPlaying ? () => window.speechSynthesis.cancel() : speakQuestion}
+                  onClick={() => speakQuestion(0.5)}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 active:scale-95 transition-all"
+                  title="Slow Speed"
+                >
+                  <Turtle size={16} />
+                </button>
+                <button 
+                  onClick={isPlaying ? () => window.speechSynthesis.cancel() : () => speakQuestion(0.9)}
                   className="w-10 h-10 flex items-center justify-center bg-sky-500 text-white rounded-xl hover:bg-sky-600 active:scale-95 transition-all shadow-md shadow-sky-500/30"
                 >
                   {isPlaying ? <Square size={16} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
@@ -233,18 +397,18 @@ export default function QuizPage() {
             </div>
 
             {/* Question Text */}
-            <div className="text-center mb-8">
-              <div className="inline-block px-4 py-1.5 bg-sky-50 border border-sky-100 rounded-full text-sky-600 font-bold text-xs mb-4 uppercase tracking-wider">
+            <div className="text-center mb-6">
+              <div className="inline-block px-3 py-1 bg-sky-50 border border-sky-100 rounded-full text-sky-600 font-bold text-[10px] mb-3 uppercase tracking-wider">
                 Level {levelNumber}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                 {currentQuestion?.questionText}
               </h2>
             </div>
 
             {/* Options Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-              {currentQuestion?.options.map((option, idx) => {
+              {shuffledOptions.map((option, idx) => {
                 const isCorrect = answered && option === correctAnswer;
                 const isWrong = answered && selectedOption === option && option !== correctAnswer;
                 
@@ -256,15 +420,15 @@ export default function QuizPage() {
                     whileHover={!answered ? { scale: 1.02, y: -2 } : {}}
                     whileTap={!answered ? { scale: 0.98 } : {}}
                     className={`
-                      relative flex items-center justify-between p-5 rounded-2xl font-bold text-left transition-all duration-300 border-2 shadow-[0_4px_0_0_transparent]
+                      relative flex items-center justify-between p-4 rounded-xl font-bold text-left transition-all duration-300 border-2 shadow-[0_3px_0_0_transparent]
                       ${isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-emerald-500/30' : 
                         isWrong ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-rose-500/30' : 
                         'bg-white border-slate-200 text-slate-600 hover:border-sky-400 hover:bg-sky-50 shadow-slate-200'}
                     `}
                   >
-                    <span className="text-lg">{option}</span>
-                    {isCorrect && <CheckCircle2 size={24} className="text-emerald-500 flex-shrink-0" />}
-                    {isWrong && <XCircle size={24} className="text-rose-500 flex-shrink-0" />}
+                    <span className="text-base">{option}</span>
+                    {isCorrect && <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />}
+                    {isWrong && <XCircle size={20} className="text-rose-500 flex-shrink-0" />}
                   </motion.button>
                 );
               })}
@@ -278,13 +442,13 @@ export default function QuizPage() {
                 whileHover={!answered && !isListening ? { scale: 1.1, y: -5 } : {}}
                 whileTap={!answered ? { scale: 0.9 } : {}}
                 className={`
-                  relative w-20 h-20 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
+                  relative w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
                   ${answered ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 
-                    isListening ? 'bg-rose-500 border-rose-600 text-white shadow-xl shadow-rose-500/50' : 
-                    'bg-white border-sky-100 text-sky-500 shadow-xl shadow-slate-200 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
+                    isListening ? 'bg-rose-500 border-rose-600 text-white shadow-lg shadow-rose-500/50' : 
+                    'bg-white border-sky-100 text-sky-500 shadow-lg shadow-slate-200 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
                 `}
               >
-                <Mic size={32} strokeWidth={isListening ? 3 : 2.5} />
+                <Mic size={28} strokeWidth={isListening ? 3 : 2.5} />
                 
                 {/* Ripple Effect when listening */}
                 {isListening && (
@@ -305,18 +469,40 @@ export default function QuizPage() {
             {/* Feedback Message */}
             <AnimatePresence>
               {feedback && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className={`
-                    mt-6 flex items-center gap-3 p-4 rounded-2xl font-bold border-2
-                    ${selectedOption === correctAnswer ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}
-                  `}
-                >
-                  {selectedOption === correctAnswer ? <Trophy size={24} className="text-emerald-500 flex-shrink-0" /> : <AlertCircle size={24} className="text-rose-500 flex-shrink-0" />}
-                  <span className="text-base sm:text-lg">{feedback}</span>
-                </motion.div>
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className={`
+                      flex-1 flex items-center gap-3 p-4 rounded-2xl font-bold border-2
+                      ${selectedOption === correctAnswer ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}
+                    `}
+                  >
+                    {selectedOption === correctAnswer ? <Trophy size={24} className="text-emerald-500 flex-shrink-0" /> : <AlertCircle size={24} className="text-rose-500 flex-shrink-0" />}
+                    <span className="text-base sm:text-lg">{feedback}</span>
+                  </motion.div>
+
+                  {audioBlobUrl && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex-shrink-0 flex items-center justify-center p-4 bg-slate-100 rounded-2xl border-2 border-slate-200"
+                    >
+                      <button 
+                        onClick={() => {
+                          const audio = new Audio(audioBlobUrl);
+                          audio.play();
+                        }}
+                        className="flex items-center gap-2 text-slate-700 font-bold hover:text-sky-600 transition-colors"
+                        title="Dengarkan suaramu"
+                      >
+                        <Volume2 size={20} />
+                        Dengarkan Suaramu
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
               )}
             </AnimatePresence>
 
@@ -330,10 +516,10 @@ export default function QuizPage() {
                   onClick={handleNextQuestion}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 py-5 bg-slate-900 text-white text-lg font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all"
+                  className="w-full mt-6 py-4 bg-slate-900 text-white text-base font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all"
                 >
                   {currentQuestionIndex < questions.length - 1 ? 'Lanjut ke Soal Berikutnya' : 'Selesaikan Misi'}
-                  <ChevronRight size={24} strokeWidth={3} />
+                  <ChevronRight size={20} strokeWidth={3} />
                 </motion.button>
               )}
             </AnimatePresence>
@@ -345,6 +531,9 @@ export default function QuizPage() {
           <CommentSection levelId={levelNumber} />
         </div>
       </div>
+      
+      {/* Badge Unlock Modal */}
+      <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />
     </div>
   );
 }

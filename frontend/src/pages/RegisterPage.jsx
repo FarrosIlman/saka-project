@@ -57,7 +57,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 flex flex-col md:flex-row-reverse overflow-hidden">
+    <div className="relative min-h-screen bg-slate-50 flex flex-col md:flex-row-reverse overflow-x-hidden overflow-y-auto">
       
       {/* Background Decor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -97,12 +97,12 @@ export default function RegisterPage() {
       </div>
 
       {/* Left Panel - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 relative z-10">
+      <div className="w-full flex-1 md:w-1/2 flex items-center justify-center p-4 sm:p-6 relative z-10 min-h-screen md:min-h-0">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md glass-card p-8 sm:p-10"
+          className="w-full max-w-md glass-card p-6 sm:p-10"
         >
           <div className="text-center mb-8">
             <div className="inline-flex md:hidden items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-bold mb-6">

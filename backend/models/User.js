@@ -104,6 +104,31 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Daily Quests
+    dailyQuests: [{
+      questType: { type: String, enum: ['login', 'complete_quiz', 'perfect_score'] },
+      title: String,
+      progress: { type: Number, default: 0 },
+      target: Number,
+      rewardXP: Number,
+      isCompleted: { type: Boolean, default: false },
+      isClaimed: { type: Boolean, default: false }
+    }],
+    lastQuestReset: {
+      type: Date,
+      default: null,
+    },
+    // Hearts System
+    hearts: {
+      type: Number,
+      default: 5,
+      min: 0,
+      max: 5,
+    },
+    lastHeartRegen: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,

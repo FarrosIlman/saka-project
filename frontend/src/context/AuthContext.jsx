@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, userAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -22,9 +22,19 @@ export const AuthProvider = ({ children }) => {
     
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
+      // Fetch latest user data in background
+      userAPI.getProfile()
+        .then(res => {
+          if (res.data && res.data._id) {
+            setUser(res.data);
+            localStorage.setItem('user', JSON.stringify(res.data));
+          }
+        })
+        .catch(err => console.error('Failed to fetch latest profile:', err))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, []);
 
   const login = async (username, password) => {
@@ -56,11 +66,20 @@ export const AuthProvider = ({ children }) => {
     return user?.role === 'admin';
   };
 
+  const updateUser = (newData) => {
+    setUser((prev) => {
+      const updatedUser = { ...prev, ...newData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
   const value = {
     user,
     login,
     logout,
     isAdmin,
+    updateUser,
     loading,
   };
 
