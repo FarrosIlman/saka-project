@@ -1,8 +1,40 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['saka.png'],
+      manifest: {
+        name: 'SAKA Platform',
+        short_name: 'SAKA',
+        description: 'Platform Belajar Bahasa Inggris',
+        theme_color: '#10b981', // emerald-500
+        background_color: '#f8fafc', // slate-50
+        display: 'standalone',
+        icons: [
+          {
+            src: '/saka.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/saka.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      },
+      devOptions: {
+        enabled: true
+      }
+    })
+  ],
   server: {
     port: 5173,
     proxy: {
