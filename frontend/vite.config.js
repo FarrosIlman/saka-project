@@ -7,23 +7,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['saka-optimized.png'],
+      includeAssets: ['saka-padded.png'],
       manifest: {
         name: 'SAKA Platform',
         short_name: 'SAKA',
         description: 'Platform Belajar Bahasa Inggris',
         theme_color: '#10b981', // emerald-500
-        background_color: '#10b981', // emerald background to match optimized icon
+        background_color: '#ffffff', // pure white background to match padded icon
         display: 'standalone',
         icons: [
           {
-            src: '/saka-optimized.png',
+            src: '/saka-padded.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/saka-optimized.png',
+            src: '/saka-padded.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
