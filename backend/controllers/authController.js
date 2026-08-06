@@ -39,11 +39,13 @@ const register = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Username must be at least 3 characters long' });
   }
 
-  // Check if user already exists
-  const userExists = await User.findOne({ username });
+  // Check if user already exists (case-insensitive)
+  const userExists = await User.findOne({ 
+    username: { $regex: new RegExp(`^${username}$`, 'i') } 
+  });
 
   if (userExists) {
-    return res.status(400).json({ message: 'Username already exists' });
+    return res.status(400).json({ message: 'Username sudah terpakai' });
   }
 
   // Hash password
@@ -92,8 +94,10 @@ const login = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Please provide username and password' });
   }
 
-  // Check if user exists
-  const user = await User.findOne({ username });
+  // Check if user exists (case-insensitive)
+  const user = await User.findOne({ 
+    username: { $regex: new RegExp(`^${username}$`, 'i') } 
+  });
 
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });

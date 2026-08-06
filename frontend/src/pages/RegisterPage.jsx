@@ -47,6 +47,7 @@ export default function RegisterPage() {
         setLoading(false);
       } else {
         showSuccess('Pendaftaran berhasil! Mengalihkan ke login...');
+        setTimeout(() => navigate('/login'), 1500);
       }
     } catch (err) {
       console.error('Register error:', err);

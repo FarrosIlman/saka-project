@@ -7,7 +7,7 @@ import CommentSection from '../components/discussion/CommentSection';
 import stringSimilarity from 'string-similarity';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Mic, ChevronRight, CheckCircle2, 
+  Mic, ChevronRight, CheckCircle2, Lock,
   XCircle, AlertCircle, ArrowLeft, Loader2, Play, Pause, Square, Volume2, Sparkles, Trophy, Turtle, Heart, HeartCrack
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -23,11 +23,18 @@ export default function QuizPage() {
   const { success, error, warning } = useToast();
 
   const [questions, setQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    const saved = localStorage.getItem(`quiz_index_${levelNumber}`);
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [score, setScore] = useState(() => {
+    const saved = localStorage.getItem(`quiz_score_${levelNumber}`);
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [incorrectAttempts, setIncorrectAttempts] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState(null);
   const [selectedOption, setSelectedOption] = useState('');
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [answered, setAnswered] = useState(false);
@@ -44,6 +51,8 @@ export default function QuizPage() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [mascotState, setMascotState] = useState('idle');
   const [streakData, setStreakData] = useState(null);
+  const [optionsLocked, setOptionsLocked] = useState(true);
+  const [voiceAttempts, setVoiceAttempts] = useState(0);
 
   useEffect(() => { fetchQuestions(); }, [levelNumber]);
 
@@ -75,6 +84,16 @@ export default function QuizPage() {
     if (!currentQuestion?.options) return [];
     return [...currentQuestion.options].sort(() => Math.random() - 0.5);
   }, [currentQuestion]);
+
+  // Load saved voice attempts for the current question
+  useEffect(() => {
+    if (currentQuestion) {
+      const savedAttempts = localStorage.getItem(`voice_attempts_${levelNumber}_${currentQuestion._id}`);
+      const attempts = savedAttempts ? parseInt(savedAttempts, 10) : 0;
+      setVoiceAttempts(attempts);
+      setOptionsLocked(attempts < 3);
+    }
+  }, [currentQuestion, levelNumber]);
 
   const speakQuestion = useCallback((rate = 0.9) => {
     if (!currentQuestion) return;
@@ -126,6 +145,7 @@ export default function QuizPage() {
       };
       recognition.onerror = () => {
         setIsListening(false);
+        setOptionsLocked(false);
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
           mediaRecorderRef.current.stop();
         }
@@ -142,6 +162,7 @@ export default function QuizPage() {
     }).catch(err => {
       error('Microphone permission denied.');
       setMascotState('sad');
+      setOptionsLocked(false);
     });
   };
 
@@ -154,9 +175,22 @@ export default function QuizPage() {
     const matchedIndex = similarities.indexOf(maxSimilarity);
     if (maxSimilarity >= 0.7) { checkAnswer(currentQuestion.options[matchedIndex]); } 
     else { 
-      setFeedback(`You said: "${transcript}". Try again.`); 
       setMascotState('sad');
       vibrateError();
+      const newAttempts = voiceAttempts + 1;
+      setVoiceAttempts(newAttempts);
+      localStorage.setItem(`voice_attempts_${levelNumber}_${currentQuestion._id}`, newAttempts.toString());
+      
+      const maxVoiceAttempts = 3;
+      if (newAttempts >= maxVoiceAttempts) {
+        setOptionsLocked(false);
+        setFeedbackStatus('error');
+        setFeedback(`Sepertinya sistem mendengar: "${transcript}". Karena ini percobaan terakhir, opsi bantuan kini dibuka!`); 
+        warning('Opsi jawaban ganda telah dibuka.');
+      } else {
+        setFeedbackStatus('warning');
+        setFeedback(`Sistem mendengar: "${transcript}". Pastikan pengucapan bahasa Inggrismu sudah tepat. Ayo coba lagi! (${maxVoiceAttempts - newAttempts} kesempatan lagi)`); 
+      }
     }
   };
 
@@ -171,12 +205,16 @@ export default function QuizPage() {
         playDing();
         vibrateSuccess();
         setMascotState('happy');
+        setFeedbackStatus('success');
         setFeedback('Excellent! Correct Answer.'); 
-        setScore(score + 1); 
+        const newScore = score + 1;
+        setScore(newScore); 
+        localStorage.setItem(`quiz_score_${levelNumber}`, newScore.toString());
       } else { 
         playBuzzer();
         vibrateError();
         setMascotState('sad');
+        setFeedbackStatus('error');
         setFeedback("Not quite right, let's try again!"); 
         setMistakes(prev => {
           if (prev.some(m => m.question === currentQuestion.questionText)) return prev;
@@ -192,6 +230,8 @@ export default function QuizPage() {
           setHearts(heartRes.data.hearts);
           if (heartRes.data.hearts <= 0) {
             vibrateHeavy();
+            localStorage.removeItem(`quiz_index_${levelNumber}`);
+            localStorage.removeItem(`quiz_score_${levelNumber}`);
             setTimeout(() => setShowGameOver(true), 1500);
           }
         } catch(e) {
@@ -211,16 +251,23 @@ export default function QuizPage() {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      localStorage.setItem(`quiz_index_${levelNumber}`, nextIndex.toString());
       setAnswered(false);
       setSelectedOption('');
       setFeedback('');
+      setFeedbackStatus(null);
       setAudioBlobUrl(null);
       setMascotState('idle');
+      setOptionsLocked(true);
+      setVoiceAttempts(0);
     } else { endQuiz(false); }
   };
 
   const endQuiz = async (failed) => {
+    localStorage.removeItem(`quiz_index_${levelNumber}`);
+    localStorage.removeItem(`quiz_score_${levelNumber}`);
     if (failed) { warning('Out of attempts!'); navigate('/levels'); return; }
     const finalScore = Math.round((score / questions.length) * 100);
     try {
@@ -439,18 +486,20 @@ export default function QuizPage() {
                 return (
                   <motion.button 
                     key={idx} 
-                    disabled={answered} 
+                    disabled={answered || optionsLocked} 
                     onClick={() => checkAnswer(option)}
-                    whileHover={!answered ? { scale: 1.02, y: -2 } : {}}
-                    whileTap={!answered ? { scale: 0.98 } : {}}
+                    whileHover={(!answered && !optionsLocked) ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={(!answered && !optionsLocked) ? { scale: 0.98 } : {}}
                     className={`
                       relative flex items-center justify-between p-4 rounded-xl font-bold text-left transition-all duration-300 border-2 shadow-[0_3px_0_0_transparent]
-                      ${isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-emerald-500/30' : 
+                      ${optionsLocked && !answered ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-80' : 
+                        isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-emerald-500/30' : 
                         isWrong ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-rose-500/30' : 
                         'bg-white border-slate-200 text-slate-600 hover:border-sky-400 hover:bg-sky-50 shadow-slate-200'}
                     `}
                   >
                     <span className="text-base">{option}</span>
+                    {optionsLocked && !answered && <Lock size={16} className="text-slate-300 flex-shrink-0" />}
                     {isCorrect && <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />}
                     {isWrong && <XCircle size={20} className="text-rose-500 flex-shrink-0" />}
                   </motion.button>
@@ -506,10 +555,14 @@ export default function QuizPage() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     className={`
                       flex-1 flex items-center gap-3 p-4 rounded-2xl font-bold border-2
-                      ${selectedOption === correctAnswer ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}
+                      ${feedbackStatus === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 
+                        feedbackStatus === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-700' : 
+                        'bg-rose-50 border-rose-200 text-rose-700'}
                     `}
                   >
-                    {selectedOption === correctAnswer ? <Trophy size={24} className="text-emerald-500 flex-shrink-0" /> : <AlertCircle size={24} className="text-rose-500 flex-shrink-0" />}
+                    {feedbackStatus === 'success' ? <Trophy size={24} className="text-emerald-500 flex-shrink-0" /> : 
+                     feedbackStatus === 'warning' ? <AlertCircle size={24} className="text-amber-500 flex-shrink-0" /> : 
+                     <XCircle size={24} className="text-rose-500 flex-shrink-0" />}
                     <span className="text-base sm:text-lg">{feedback}</span>
                   </motion.div>
 

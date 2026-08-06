@@ -51,7 +51,19 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
+        message: error.message || 'Login failed',
+      };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Registration failed',
       };
     }
   };
@@ -86,6 +98,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    register,
     logout,
     isAdmin,
     updateUser,
