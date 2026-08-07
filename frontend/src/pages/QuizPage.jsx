@@ -16,6 +16,8 @@ import { vibrateSuccess, vibrateError, vibrateTap, vibrateHeavy } from '../utils
 import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
 import { StreakModal } from '../components/gamification/StreakModal';
 import { Mascot } from '../components/gamification/Mascot';
+import WhisperWorker from '../workers/whisper.worker.js?worker';
+import { decodeAudioBuffer } from '../utils/audioUtils';
 
 export default function QuizPage() {
   const { levelNumber } = useParams();
@@ -53,6 +55,46 @@ export default function QuizPage() {
   const [streakData, setStreakData] = useState(null);
   const [optionsLocked, setOptionsLocked] = useState(true);
   const [voiceAttempts, setVoiceAttempts] = useState(0);
+
+  // Whisper AI States
+  const whisperWorkerRef = React.useRef(null);
+  const modelLoadedRef = React.useRef(false);
+  const processVoiceRef = React.useRef(null);
+  const [isModelLoading, setIsModelLoading] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [modelProgress, setModelProgress] = useState(0);
+
+  // Initialize Worker
+  useEffect(() => {
+    whisperWorkerRef.current = new WhisperWorker();
+    
+    whisperWorkerRef.current.addEventListener('message', (event) => {
+      const { type, text, info, error } = event.data;
+      if (type === 'progress') {
+        setModelProgress(info.progress || 0);
+      } else if (type === 'loaded') {
+        modelLoadedRef.current = true;
+        setIsModelLoading(false);
+        // Worker loaded, now we can start actual recording
+        startActualRecording();
+      } else if (type === 'result') {
+        setIsTranscribing(false);
+        if (processVoiceRef.current) processVoiceRef.current(text);
+        setMascotState('idle');
+      } else if (type === 'error') {
+        console.error("Whisper error:", error);
+        setIsModelLoading(false);
+        setIsTranscribing(false);
+        setMascotState('sad');
+      }
+    });
+
+    return () => {
+      if (whisperWorkerRef.current) {
+        whisperWorkerRef.current.terminate();
+      }
+    }
+  }, []);
 
   useEffect(() => { fetchQuestions(); }, [levelNumber]);
 
@@ -107,90 +149,71 @@ export default function QuizPage() {
     window.speechSynthesis.speak(utterance);
   }, [currentQuestion, volume]);
 
-  const startListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      error('Browser does not support Speech Recognition.');
+  // Keep processVoiceAnswer ref fresh
+  useEffect(() => {
+    processVoiceRef.current = processVoiceAnswer;
+  }, [currentQuestion, optionsLocked, voiceAttempts, score, answered, selectedOption, correctAnswer]);
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
       return;
     }
-
-    setAudioBlobUrl(null);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => { 
-      setIsListening(true); 
-      setMascotState('thinking'); 
-    };
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      processVoiceAnswer(transcript);
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error('Speech recognition error', event.error);
-      setIsListening(false);
-      setOptionsLocked(false);
-      
-      if (event.error === 'not-allowed') {
-        error('Microphone permission denied.');
-        setMascotState('sad');
-      }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      if (mascotState === 'thinking') setMascotState('idle');
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-    };
-
-    // On mobile, running MediaRecorder and SpeechRecognition simultaneously breaks the microphone access.
-    // So we only enable audio playback recording on Desktop.
-    if (!isMobile) {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-
-        mediaRecorder.ondataavailable = e => {
-          audioChunksRef.current.push(e.data);
-        };
-
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          setAudioBlobUrl(audioUrl);
-          // Stop all tracks to release mic on desktop
-          stream.getTracks().forEach(track => track.stop());
-        };
-
-        mediaRecorder.start();
-        try { recognition.start(); } catch (e) { console.error(e); setIsListening(false); }
-      }).catch(err => {
-        console.error('MediaRecorder error:', err);
-        try { recognition.start(); } catch (e) { console.error(e); setIsListening(false); }
-      });
+    
+    if (!modelLoadedRef.current) {
+      setIsModelLoading(true);
+      setMascotState('thinking');
+      whisperWorkerRef.current.postMessage({ type: 'load' });
     } else {
-      // Mobile purely uses SpeechRecognition for stability
-      try {
-        recognition.start();
-      } catch (err) {
-        console.error(err);
+      startActualRecording();
+    }
+  };
+
+  const startActualRecording = async () => {
+    setAudioBlobUrl(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = e => {
+        audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
         setIsListening(false);
-      }
+        setIsTranscribing(true);
+        setMascotState('thinking');
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioBlobUrl(audioUrl);
+        
+        stream.getTracks().forEach(track => track.stop());
+
+        try {
+          const audioData = await decodeAudioBuffer(audioBlob);
+          whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: audioData });
+        } catch (err) {
+          console.error("Audio decode error:", err);
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsListening(true);
+      setMascotState('idle');
+    } catch (err) {
+      console.error('Microphone error:', err);
+      error('Microphone permission denied.');
+      setMascotState('sad');
+    }
+  };
+
+  const stopListening = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
     }
   };
 
@@ -544,18 +567,25 @@ export default function QuizPage() {
               </div>
 
               <motion.button 
-                disabled={answered}
-                onClick={!answered ? startListening : null}
-                whileHover={!answered && !isListening ? { scale: 1.1, y: -5 } : {}}
-                whileTap={!answered ? { scale: 0.9 } : {}}
+                disabled={answered || isModelLoading || isTranscribing}
+                onClick={(!answered && !isModelLoading && !isTranscribing) ? handleMicClick : null}
+                whileHover={!answered && !isListening && !isModelLoading && !isTranscribing ? { scale: 1.1, y: -5 } : {}}
+                whileTap={!answered && !isModelLoading && !isTranscribing ? { scale: 0.9 } : {}}
                 className={`
                   relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10 bg-white
                   ${answered ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 
                     isListening ? 'bg-rose-500 border-rose-600 text-white shadow-lg shadow-rose-500/50' : 
+                    isModelLoading || isTranscribing ? 'bg-amber-100 border-amber-200 text-amber-500 cursor-wait' :
                     'border-sky-100 text-sky-500 shadow-xl shadow-sky-100 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
                 `}
               >
-                <Mic size={36} strokeWidth={isListening ? 3 : 2.5} />
+                {isListening ? (
+                  <Square size={32} fill="currentColor" />
+                ) : isModelLoading || isTranscribing ? (
+                  <Loader2 size={36} className="animate-spin" />
+                ) : (
+                  <Mic size={36} strokeWidth={2.5} />
+                )}
                 
                 {/* Ripple Effect when listening */}
                 {isListening && (
@@ -566,11 +596,25 @@ export default function QuizPage() {
                 )}
               </motion.button>
               
-              <span className={`mt-4 font-black text-sm uppercase tracking-widest transition-colors ${
-                isListening ? 'text-rose-500' : answered ? 'text-slate-400' : 'text-sky-500'
-              }`}>
-                {isListening ? 'Listening...' : answered ? 'Locked' : 'Tap & Speak'}
-              </span>
+              <div className="flex flex-col items-center mt-4">
+                <span className={`font-black text-sm uppercase tracking-widest transition-colors ${
+                  isListening ? 'text-rose-500' : isModelLoading || isTranscribing ? 'text-amber-500' : answered ? 'text-slate-400' : 'text-sky-500'
+                }`}>
+                  {isListening ? 'Tap to Stop' : 
+                   isModelLoading ? 'Downloading AI...' : 
+                   isTranscribing ? 'Transcribing...' :
+                   answered ? 'Locked' : 'Tap & Speak'}
+                </span>
+                
+                {isModelLoading && modelProgress > 0 && (
+                  <div className="w-32 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 transition-all duration-300"
+                      style={{ width: `${modelProgress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Feedback Message */}
