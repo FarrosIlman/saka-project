@@ -17,7 +17,7 @@ import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
 import { StreakModal } from '../components/gamification/StreakModal';
 import { Mascot } from '../components/gamification/Mascot';
 import WhisperWorker from '../workers/whisper.worker.js?worker';
-import { decodeAudioBuffer } from '../utils/audioUtils';
+import { encodeWAV } from '../utils/wavEncoder';
 
 export default function QuizPage() {
   const { levelNumber } = useParams();
@@ -47,8 +47,14 @@ export default function QuizPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [newBadges, setNewBadges] = useState([]);
   const [audioBlobUrl, setAudioBlobUrl] = useState(null);
-  const mediaRecorderRef = React.useRef(null);
-  const audioChunksRef = React.useRef([]);
+  
+  // Audio Recording Refs
+  const audioContextRef = React.useRef(null);
+  const scriptProcessorRef = React.useRef(null);
+  const mediaStreamSourceRef = React.useRef(null);
+  const mediaStreamRef = React.useRef(null);
+  const rawAudioChunksRef = React.useRef([]);
+  
   const [hearts, setHearts] = useState(5);
   const [showGameOver, setShowGameOver] = useState(false);
   const [mascotState, setMascotState] = useState('idle');
@@ -176,35 +182,32 @@ export default function QuizPage() {
     setAudioBlobUrl(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = e => {
-        audioChunksRef.current.push(e.data);
+      mediaStreamRef.current = stream;
+      
+      // We use AudioContext to capture RAW 16kHz PCM data directly.
+      // This bypasses MediaRecorder (which creates WebM) and ensures Whisper gets perfect data.
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      audioContextRef.current = audioContext;
+      
+      const source = audioContext.createMediaStreamSource(stream);
+      mediaStreamSourceRef.current = source;
+      
+      // Buffer size 4096, 1 input channel, 1 output channel
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      scriptProcessorRef.current = processor;
+      
+      rawAudioChunksRef.current = [];
+      
+      processor.onaudioprocess = (e) => {
+        // Copy the Float32Array to avoid it being overwritten
+        const inputData = e.inputBuffer.getChannelData(0);
+        rawAudioChunksRef.current.push(new Float32Array(inputData));
       };
+      
+      // Connect to destination so it actually processes (muting it just in case)
+      source.connect(processor);
+      processor.connect(audioContext.destination);
 
-      mediaRecorder.onstop = async () => {
-        setIsListening(false);
-        setIsTranscribing(true);
-        setMascotState('thinking');
-        
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioBlobUrl(audioUrl);
-        
-        stream.getTracks().forEach(track => track.stop());
-
-        try {
-          const audioData = await decodeAudioBuffer(audioBlob);
-          whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: audioData });
-        } catch (err) {
-          console.error("Audio decode error:", err);
-          setIsTranscribing(false);
-        }
-      };
-
-      mediaRecorder.start();
       setIsListening(true);
       setMascotState('idle');
     } catch (err) {
@@ -214,9 +217,52 @@ export default function QuizPage() {
     }
   };
 
-  const stopListening = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+  const stopListening = async () => {
+    if (scriptProcessorRef.current && audioContextRef.current) {
+      setIsListening(false);
+      setIsTranscribing(true);
+      setMascotState('thinking');
+      
+      // Disconnect audio nodes
+      scriptProcessorRef.current.disconnect();
+      mediaStreamSourceRef.current.disconnect();
+      if (audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+      
+      // Stop mic tracks
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      // Merge PCM chunks
+      const chunks = rawAudioChunksRef.current;
+      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      const mergedAudio = new Float32Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        mergedAudio.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      // Normalize audio (boost volume)
+      let maxVal = 0;
+      for (let i = 0; i < mergedAudio.length; i++) {
+        if (Math.abs(mergedAudio[i]) > maxVal) maxVal = Math.abs(mergedAudio[i]);
+      }
+      if (maxVal > 0) {
+        for (let i = 0; i < mergedAudio.length; i++) {
+          mergedAudio[i] = mergedAudio[i] / maxVal;
+        }
+      }
+      
+      // Create WAV for replay
+      const wavBlob = encodeWAV(mergedAudio, 16000);
+      const audioUrl = URL.createObjectURL(wavBlob);
+      setAudioBlobUrl(audioUrl);
+      
+      // Send raw 16kHz PCM Float32Array directly to Whisper Worker
+      whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: mergedAudio });
     }
   };
 
