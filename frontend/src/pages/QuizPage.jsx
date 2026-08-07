@@ -89,6 +89,9 @@ export default function QuizPage() {
       }
     });
 
+    // Start preloading the AI model immediately in the background
+    whisperWorkerRef.current.postMessage({ type: 'load' });
+
     return () => {
       if (whisperWorkerRef.current) {
         whisperWorkerRef.current.terminate();
@@ -160,10 +163,10 @@ export default function QuizPage() {
       return;
     }
     
+    // If the background download is still not finished, show the loading state
     if (!modelLoadedRef.current) {
       setIsModelLoading(true);
       setMascotState('thinking');
-      whisperWorkerRef.current.postMessage({ type: 'load' });
     } else {
       startActualRecording();
     }

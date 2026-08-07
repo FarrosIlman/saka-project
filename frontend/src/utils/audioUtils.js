@@ -24,5 +24,21 @@ export async function decodeAudioBuffer(blob) {
     audioData = audioBuffer.getChannelData(0);
   }
   
+  // Normalize the audio (boost volume) for Whisper
+  // Find the maximum absolute value in the audio
+  let maxVal = 0;
+  for (let i = 0; i < audioData.length; i++) {
+    if (Math.abs(audioData[i]) > maxVal) {
+      maxVal = Math.abs(audioData[i]);
+    }
+  }
+  
+  // Scale all values so the maximum is 1.0
+  if (maxVal > 0) {
+    for (let i = 0; i < audioData.length; i++) {
+      audioData[i] = audioData[i] / maxVal;
+    }
+  }
+  
   return audioData;
 }
