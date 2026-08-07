@@ -115,55 +115,83 @@ export default function QuizPage() {
     }
 
     setAudioBlobUrl(null);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-      mediaRecorder.ondataavailable = e => {
-        audioChunksRef.current.push(e.data);
-      };
+    recognition.onstart = () => { 
+      setIsListening(true); 
+      setMascotState('thinking'); 
+    };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioBlobUrl(audioUrl);
-      };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      processVoiceAnswer(transcript);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    };
 
-      mediaRecorder.start();
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.onstart = () => { setIsListening(true); setMascotState('thinking'); };
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        processVoiceAnswer(transcript);
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
-      };
-      recognition.onerror = () => {
-        setIsListening(false);
-        setOptionsLocked(false);
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
-      };
-      recognition.onend = () => {
-        setIsListening(false);
-        if (mascotState === 'thinking') setMascotState('idle');
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
-      };
-      recognition.start();
-
-    }).catch(err => {
-      error('Microphone permission denied.');
-      setMascotState('sad');
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      setIsListening(false);
       setOptionsLocked(false);
-    });
+      
+      if (event.error === 'not-allowed') {
+        error('Microphone permission denied.');
+        setMascotState('sad');
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (mascotState === 'thinking') setMascotState('idle');
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+
+    // On mobile, running MediaRecorder and SpeechRecognition simultaneously breaks the microphone access.
+    // So we only enable audio playback recording on Desktop.
+    if (!isMobile) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = e => {
+          audioChunksRef.current.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          setAudioBlobUrl(audioUrl);
+          // Stop all tracks to release mic on desktop
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        try { recognition.start(); } catch (e) { console.error(e); setIsListening(false); }
+      }).catch(err => {
+        console.error('MediaRecorder error:', err);
+        try { recognition.start(); } catch (e) { console.error(e); setIsListening(false); }
+      });
+    } else {
+      // Mobile purely uses SpeechRecognition for stability
+      try {
+        recognition.start();
+      } catch (err) {
+        console.error(err);
+        setIsListening(false);
+      }
+    }
   };
 
   const processVoiceAnswer = (transcript) => {

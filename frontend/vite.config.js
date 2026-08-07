@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'SAKA Platform',
         short_name: 'SAKA',
         description: 'Platform Belajar Bahasa Inggris',
-        theme_color: '#10b981', // emerald-500
+        theme_color: '#ffffff', // white action bar
         background_color: '#ffffff', // pure white background to match padded icon
         display: 'standalone',
         icons: [

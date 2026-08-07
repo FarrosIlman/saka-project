@@ -28,91 +28,99 @@ const StudentScoresPage = React.lazy(() => import('./admin/pages/StudentScoresPa
 const LevelManagementPage = React.lazy(() => import('./admin/pages/LevelManagementPage'));
 const LevelEditPage = React.lazy(() => import('./admin/pages/LevelEditPage'));
 
+import SplashScreen from './components/SplashScreen';
+
 function App() {
+  const [showSplash, setShowSplash] = React.useState(true);
+
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          {/* Tambahkan properti future di sini untuk menghilangkan warning v7 */}
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Suspense fallback={<PageLoader />}><LandingPage /></Suspense>} />
-              <Route path="/login" element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
-              <Route path="/register" element={<Suspense fallback={<PageLoader />}><RegisterPage /></Suspense>} />
+      {showSplash ? (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      ) : (
+        <AuthProvider>
+          <ToastProvider>
+            {/* Tambahkan properti future di sini untuk menghilangkan warning v7 */}
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Suspense fallback={<PageLoader />}><LandingPage /></Suspense>} />
+                <Route path="/login" element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
+                <Route path="/register" element={<Suspense fallback={<PageLoader />}><RegisterPage /></Suspense>} />
 
-              <Route
-                path="/levels"
-                element={
-                  <ProtectedRoute allowedRoles={['student']}>
-                    <Suspense fallback={<PageLoader />}><LevelSelectionPage /></Suspense>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/quiz/:levelNumber"
-                element={
-                  <ProtectedRoute allowedRoles={['student']}>
-                    <Suspense fallback={<PageLoader />}><QuizPage /></Suspense>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/profile"
-                element={
-                  <ProtectedRoute allowedRoles={['student']}>
-                    <Suspense fallback={<PageLoader />}><StudentProfilePage /></Suspense>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute allowedRoles={['student', 'admin']}>
-                    <Suspense fallback={<PageLoader />}><UserProfilePage /></Suspense>
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/levels"
+                  element={
+                    <ProtectedRoute allowedRoles={['student']}>
+                      <Suspense fallback={<PageLoader />}><LevelSelectionPage /></Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/quiz/:levelNumber"
+                  element={
+                    <ProtectedRoute allowedRoles={['student']}>
+                      <Suspense fallback={<PageLoader />}><QuizPage /></Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/profile"
+                  element={
+                    <ProtectedRoute allowedRoles={['student']}>
+                      <Suspense fallback={<PageLoader />}><StudentProfilePage /></Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute allowedRoles={['student', 'admin']}>
+                      <Suspense fallback={<PageLoader />}><UserProfilePage /></Suspense>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin View Student Interface */}
-              <Route
-                path="/admin/view-student"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Suspense fallback={<PageLoader />}><LevelSelectionPage /></Suspense>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Admin View Student Interface */}
+                <Route
+                  path="/admin/view-student"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Suspense fallback={<PageLoader />}><LevelSelectionPage /></Suspense>
+                    </ProtectedRoute>
+                  }
+                />
 
-          {/* Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <Suspense fallback={<PageLoader />}><AdminLayout /></Suspense>
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><AdminDashboardPage /></Suspense>} />
-            <Route path="users" element={<Suspense fallback={<PageLoader />}><UserManagementPage /></Suspense>} />
-            <Route path="users/new" element={<Suspense fallback={<PageLoader />}><UserEditPage /></Suspense>} />
-            <Route path="users/:userId/edit" element={<Suspense fallback={<PageLoader />}><UserEditPage /></Suspense>} />
-            <Route path="users/:userId/scores" element={<Suspense fallback={<PageLoader />}><StudentScoresPage /></Suspense>} />
-            <Route path="content/levels" element={<Suspense fallback={<PageLoader />}><LevelManagementPage /></Suspense>} />
-            <Route path="content/levels/new" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
-            <Route path="content/levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
-            <Route path="levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
-          </Route>
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Suspense fallback={<PageLoader />}><AdminLayout /></Suspense>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><AdminDashboardPage /></Suspense>} />
+              <Route path="users" element={<Suspense fallback={<PageLoader />}><UserManagementPage /></Suspense>} />
+              <Route path="users/new" element={<Suspense fallback={<PageLoader />}><UserEditPage /></Suspense>} />
+              <Route path="users/:userId/edit" element={<Suspense fallback={<PageLoader />}><UserEditPage /></Suspense>} />
+              <Route path="users/:userId/scores" element={<Suspense fallback={<PageLoader />}><StudentScoresPage /></Suspense>} />
+              <Route path="content/levels" element={<Suspense fallback={<PageLoader />}><LevelManagementPage /></Suspense>} />
+              <Route path="content/levels/new" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
+              <Route path="content/levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
+              <Route path="levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </Suspense>
-          </Router>
-        </ToastProvider>
-      </AuthProvider>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+              </Suspense>
+            </Router>
+          </ToastProvider>
+        </AuthProvider>
+      )}
     </ErrorBoundary>
   );
 }
