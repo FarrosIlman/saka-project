@@ -1,44 +1,22 @@
-export async function decodeAudioBuffer(blob) {
-  // Read blob as array buffer
-  const arrayBuffer = await blob.arrayBuffer();
-  
-  // Use OfflineAudioContext or AudioContext to decode and resample
-  // Whisper models usually require 16000 Hz, mono
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  
-  // Whisper requires a Float32Array containing the audio samples
-  let audioData;
-  if (audioBuffer.numberOfChannels === 2) {
-    // If stereo, convert to mono by averaging the two channels
-    const SCALING_FACTOR = Math.sqrt(2);
-    const left = audioBuffer.getChannelData(0);
-    const right = audioBuffer.getChannelData(1);
-    const length = left.length;
-    audioData = new Float32Array(length);
-    for (let i = 0; i < length; ++i) {
-      audioData[i] = (left[i] + right[i]) / 2;
-    }
-  } else {
-    // If already mono, just get the data
-    audioData = audioBuffer.getChannelData(0);
+export async function resampleAudio(audioData, originalSampleRate) {
+  if (originalSampleRate === 16000) {
+    return audioData;
   }
   
-  // Normalize the audio (boost volume) for Whisper
-  // Find the maximum absolute value in the audio
-  let maxVal = 0;
-  for (let i = 0; i < audioData.length; i++) {
-    if (Math.abs(audioData[i]) > maxVal) {
-      maxVal = Math.abs(audioData[i]);
-    }
-  }
+  const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+    1, 
+    Math.floor(audioData.length * 16000 / originalSampleRate), 
+    16000
+  );
   
-  // Scale all values so the maximum is 1.0
-  if (maxVal > 0) {
-    for (let i = 0; i < audioData.length; i++) {
-      audioData[i] = audioData[i] / maxVal;
-    }
-  }
+  const buffer = offlineCtx.createBuffer(1, audioData.length, originalSampleRate);
+  buffer.getChannelData(0).set(audioData);
   
-  return audioData;
+  const source = offlineCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(offlineCtx.destination);
+  source.start(0);
+  
+  const renderedBuffer = await offlineCtx.startRendering();
+  return renderedBuffer.getChannelData(0);
 }

@@ -18,6 +18,7 @@ import { StreakModal } from '../components/gamification/StreakModal';
 import { Mascot } from '../components/gamification/Mascot';
 import WhisperWorker from '../workers/whisper.worker.js?worker';
 import { encodeWAV } from '../utils/wavEncoder';
+import { resampleAudio } from '../utils/audioUtils';
 
 export default function QuizPage() {
   const { levelNumber } = useParams();
@@ -204,9 +205,12 @@ export default function QuizPage() {
         rawAudioChunksRef.current.push(new Float32Array(inputData));
       };
       
-      // Connect to destination so it actually processes (muting it just in case)
+      // Connect to a muted gain node so we don't hear echoing
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0;
       source.connect(processor);
-      processor.connect(audioContext.destination);
+      processor.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
       setIsListening(true);
       setMascotState('idle');
@@ -245,24 +249,28 @@ export default function QuizPage() {
         offset += chunk.length;
       }
       
+      // Resample to exact 16000 Hz if the hardware recorded at a different rate (e.g. 48000 Hz)
+      const hardwareSampleRate = audioContextRef.current.sampleRate;
+      let finalAudio = await resampleAudio(mergedAudio, hardwareSampleRate);
+      
       // Normalize audio (boost volume)
       let maxVal = 0;
-      for (let i = 0; i < mergedAudio.length; i++) {
-        if (Math.abs(mergedAudio[i]) > maxVal) maxVal = Math.abs(mergedAudio[i]);
+      for (let i = 0; i < finalAudio.length; i++) {
+        if (Math.abs(finalAudio[i]) > maxVal) maxVal = Math.abs(finalAudio[i]);
       }
       if (maxVal > 0) {
-        for (let i = 0; i < mergedAudio.length; i++) {
-          mergedAudio[i] = mergedAudio[i] / maxVal;
+        for (let i = 0; i < finalAudio.length; i++) {
+          finalAudio[i] = finalAudio[i] / maxVal;
         }
       }
       
-      // Create WAV for replay
-      const wavBlob = encodeWAV(mergedAudio, 16000);
+      // Create WAV for replay (must be 16000 since we resampled)
+      const wavBlob = encodeWAV(finalAudio, 16000);
       const audioUrl = URL.createObjectURL(wavBlob);
       setAudioBlobUrl(audioUrl);
       
       // Send raw 16kHz PCM Float32Array directly to Whisper Worker
-      whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: mergedAudio });
+      whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: finalAudio });
     }
   };
 
