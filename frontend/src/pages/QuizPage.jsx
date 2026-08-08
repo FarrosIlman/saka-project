@@ -35,7 +35,7 @@ export default function QuizPage() {
     return saved ? parseInt(saved, 10) : 0;
   });
   const [wrongOptions, setWrongOptions] = useState([]);
-  const [heartDeductedForCurrentQ, setHeartDeductedForCurrentQ] = useState(false);
+  const heartDeductedRef = React.useRef(false);
   const [isListening, setIsListening] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState(null);
@@ -310,8 +310,8 @@ export default function QuizPage() {
           }];
         });
         
-        if (!heartDeductedForCurrentQ) {
-          setHeartDeductedForCurrentQ(true);
+        if (!heartDeductedRef.current) {
+          heartDeductedRef.current = true;
           try {
             const heartRes = await gamificationAPI.deductHeart();
             setHearts(heartRes.data.hearts);
@@ -337,7 +337,7 @@ export default function QuizPage() {
       setAnswered(false);
       setSelectedOption('');
       setWrongOptions([]);
-      setHeartDeductedForCurrentQ(false);
+      heartDeductedRef.current = false;
       setFeedback('');
       setFeedbackStatus(null);
       setAudioBlobUrl(null);
