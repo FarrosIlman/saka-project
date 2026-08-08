@@ -56,6 +56,12 @@ export default function QuizPage() {
   const mediaStreamRef = React.useRef(null);
   const rawAudioChunksRef = React.useRef([]);
   
+  // Debug State
+  const [debugLogs, setDebugLogs] = useState([]);
+  const addDebug = (msg) => {
+    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
+  };
+  
   const [hearts, setHearts] = useState(5);
   const [showGameOver, setShowGameOver] = useState(false);
   const [mascotState, setMascotState] = useState('idle');
@@ -86,9 +92,11 @@ export default function QuizPage() {
         startActualRecording();
       } else if (type === 'result') {
         setIsTranscribing(false);
+        addDebug(`Worker Result: ${JSON.stringify(event.data)}`);
         if (processVoiceRef.current) processVoiceRef.current(text);
         setMascotState('idle');
       } else if (type === 'error') {
+        addDebug(`Worker Error: ${error}`);
         console.error("Whisper error:", error);
         setIsModelLoading(false);
         setIsTranscribing(false);
@@ -181,31 +189,28 @@ export default function QuizPage() {
 
   const startActualRecording = async () => {
     setAudioBlobUrl(null);
+    setDebugLogs([]); // Clear previous logs
+    addDebug("Starting recording...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       
-      // We use AudioContext to capture RAW 16kHz PCM data directly.
-      // This bypasses MediaRecorder (which creates WebM) and ensures Whisper gets perfect data.
       const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       audioContextRef.current = audioContext;
       
       const source = audioContext.createMediaStreamSource(stream);
       mediaStreamSourceRef.current = source;
       
-      // Buffer size 4096, 1 input channel, 1 output channel
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
       scriptProcessorRef.current = processor;
       
       rawAudioChunksRef.current = [];
       
       processor.onaudioprocess = (e) => {
-        // Copy the Float32Array to avoid it being overwritten
         const inputData = e.inputBuffer.getChannelData(0);
         rawAudioChunksRef.current.push(new Float32Array(inputData));
       };
       
-      // Connect to a muted gain node so we don't hear echoing
       const gainNode = audioContext.createGain();
       gainNode.gain.value = 0;
       source.connect(processor);
@@ -214,7 +219,9 @@ export default function QuizPage() {
 
       setIsListening(true);
       setMascotState('idle');
+      addDebug(`Recording started. SR: ${audioContext.sampleRate}`);
     } catch (err) {
+      addDebug(`Mic Error: ${err.message}`);
       console.error('Microphone error:', err);
       error('Microphone permission denied.');
       setMascotState('sad');
@@ -223,24 +230,23 @@ export default function QuizPage() {
 
   const stopListening = async () => {
     if (scriptProcessorRef.current && audioContextRef.current) {
+      addDebug("Stopping recording...");
       setIsListening(false);
       setIsTranscribing(true);
       setMascotState('thinking');
       
-      // Disconnect audio nodes
       scriptProcessorRef.current.disconnect();
       mediaStreamSourceRef.current.disconnect();
       if (audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
       
-      // Stop mic tracks
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
       }
       
-      // Merge PCM chunks
       const chunks = rawAudioChunksRef.current;
+      addDebug(`Captured ${chunks.length} chunks`);
       const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
       const mergedAudio = new Float32Array(totalLength);
       let offset = 0;
@@ -248,29 +254,35 @@ export default function QuizPage() {
         mergedAudio.set(chunk, offset);
         offset += chunk.length;
       }
+      addDebug(`Merged length: ${mergedAudio.length}`);
       
-      // Resample to exact 16000 Hz if the hardware recorded at a different rate (e.g. 48000 Hz)
-      const hardwareSampleRate = audioContextRef.current.sampleRate;
-      let finalAudio = await resampleAudio(mergedAudio, hardwareSampleRate);
-      
-      // Normalize audio (boost volume)
-      let maxVal = 0;
-      for (let i = 0; i < finalAudio.length; i++) {
-        if (Math.abs(finalAudio[i]) > maxVal) maxVal = Math.abs(finalAudio[i]);
-      }
-      if (maxVal > 0) {
+      try {
+        const hardwareSampleRate = audioContextRef.current.sampleRate;
+        let finalAudio = await resampleAudio(mergedAudio, hardwareSampleRate);
+        addDebug(`Resampled length: ${finalAudio.length}`);
+        
+        let maxVal = 0;
         for (let i = 0; i < finalAudio.length; i++) {
-          finalAudio[i] = finalAudio[i] / maxVal;
+          if (Math.abs(finalAudio[i]) > maxVal) maxVal = Math.abs(finalAudio[i]);
         }
+        addDebug(`Max Audio Value: ${maxVal}`);
+        
+        if (maxVal > 0) {
+          for (let i = 0; i < finalAudio.length; i++) {
+            finalAudio[i] = finalAudio[i] / maxVal;
+          }
+        }
+        
+        const wavBlob = encodeWAV(finalAudio, 16000);
+        const audioUrl = URL.createObjectURL(wavBlob);
+        setAudioBlobUrl(audioUrl);
+        addDebug(`WAV created. Sending to worker...`);
+        
+        whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: finalAudio });
+      } catch (err) {
+        addDebug(`Process Error: ${err.message}`);
+        setIsTranscribing(false);
       }
-      
-      // Create WAV for replay (must be 16000 since we resampled)
-      const wavBlob = encodeWAV(finalAudio, 16000);
-      const audioUrl = URL.createObjectURL(wavBlob);
-      setAudioBlobUrl(audioUrl);
-      
-      // Send raw 16kHz PCM Float32Array directly to Whisper Worker
-      whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: finalAudio });
     }
   };
 
@@ -743,12 +755,25 @@ export default function QuizPage() {
           <CommentSection levelId={levelNumber} />
         </div>
       </div>
-      
-      {/* Badge Unlock Modal */}
+
+      {/* Modals & Mascot Modals */}
       <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />
+      {streakData && (
+        <StreakModal streakData={streakData} onClose={() => setStreakData(null)} />
+      )}
       
-      {/* Streak Fire Modal */}
-      <StreakModal streakData={streakData} onClose={() => setStreakData(null)} />
+      {/* Debug Logs Panel */}
+      {debugLogs.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-slate-900/90 text-green-400 font-mono text-[10px] p-3 max-h-40 overflow-y-auto z-50">
+          <div className="flex justify-between items-center mb-2 border-b border-green-800 pb-1">
+            <span className="font-bold">DEBUG LOGS</span>
+            <button onClick={() => setDebugLogs([])} className="text-rose-400">Clear</button>
+          </div>
+          {debugLogs.map((log, i) => (
+            <div key={i}>{log}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
