@@ -13,8 +13,11 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'No audio file provided' });
     }
 
-    // Initialize Groq SDK
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    // Initialize Groq SDK with automatic retries for Rate Limiting
+    const groq = new Groq({ 
+      apiKey: process.env.GROQ_API_KEY,
+      maxRetries: 5, // Automatically wait and retry up to 5 times if >20 students submit at once
+    });
     
     // Convert Buffer to a File object compatible with Groq API
     const audioFile = await toFile(req.file.buffer, 'audio.wav', { type: 'audio/wav' });

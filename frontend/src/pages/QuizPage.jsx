@@ -34,7 +34,8 @@ export default function QuizPage() {
     const saved = localStorage.getItem(`quiz_score_${levelNumber}`);
     return saved ? parseInt(saved, 10) : 0;
   });
-  const [incorrectAttempts, setIncorrectAttempts] = useState(0);
+  const [wrongOptions, setWrongOptions] = useState([]);
+  const [heartDeductedForCurrentQ, setHeartDeductedForCurrentQ] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState(null);
@@ -281,9 +282,10 @@ export default function QuizPage() {
     vibrateTap();
     try {
       const response = await levelAPI.checkAnswer({ questionId: currentQuestion._id, selectedOption: option });
-      setCorrectAnswer(response.data.correctAnswer);
-      setAnswered(true);
+      
       if (response.data.correct) { 
+        setCorrectAnswer(response.data.correctAnswer);
+        setAnswered(true);
         playDing();
         vibrateSuccess();
         setMascotState('happy');
@@ -293,6 +295,7 @@ export default function QuizPage() {
         setScore(newScore); 
         localStorage.setItem(`quiz_score_${levelNumber}`, newScore.toString());
       } else { 
+        setWrongOptions(prev => [...prev, option]);
         playBuzzer();
         vibrateError();
         setMascotState('sad');
@@ -307,28 +310,23 @@ export default function QuizPage() {
           }];
         });
         
-        try {
-          const heartRes = await gamificationAPI.deductHeart();
-          setHearts(heartRes.data.hearts);
-          if (heartRes.data.hearts <= 0) {
-            vibrateHeavy();
-            localStorage.removeItem(`quiz_index_${levelNumber}`);
-            localStorage.removeItem(`quiz_score_${levelNumber}`);
-            setTimeout(() => setShowGameOver(true), 1500);
+        if (!heartDeductedForCurrentQ) {
+          setHeartDeductedForCurrentQ(true);
+          try {
+            const heartRes = await gamificationAPI.deductHeart();
+            setHearts(heartRes.data.hearts);
+            if (heartRes.data.hearts <= 0) {
+              vibrateHeavy();
+              localStorage.removeItem(`quiz_index_${levelNumber}`);
+              localStorage.removeItem(`quiz_score_${levelNumber}`);
+              setTimeout(() => setShowGameOver(true), 1500);
+            }
+          } catch(e) {
+            console.error("Failed to deduct lives", e);
           }
-        } catch(e) {
-          console.error("Failed to deduct lives", e);
         }
-
-        handleIncorrectAnswer(); 
       }
     } catch (err) { error('Failed to check answer.'); }
-  };
-
-  const handleIncorrectAnswer = () => {
-    const newCount = incorrectAttempts + 1;
-    setIncorrectAttempts(newCount);
-    if (newCount >= 3) { setTimeout(() => endQuiz(true), 2000); }
   };
 
   const handleNextQuestion = () => {
@@ -338,6 +336,8 @@ export default function QuizPage() {
       localStorage.setItem(`quiz_index_${levelNumber}`, nextIndex.toString());
       setAnswered(false);
       setSelectedOption('');
+      setWrongOptions([]);
+      setHeartDeductedForCurrentQ(false);
       setFeedback('');
       setFeedbackStatus(null);
       setAudioBlobUrl(null);
@@ -563,20 +563,20 @@ export default function QuizPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               {shuffledOptions.map((option, idx) => {
                 const isCorrect = answered && option === correctAnswer;
-                const isWrong = answered && selectedOption === option && option !== correctAnswer;
+                const isWrong = wrongOptions.includes(option);
                 
                 return (
                   <motion.button 
                     key={idx} 
-                    disabled={answered || optionsLocked} 
+                    disabled={answered || optionsLocked || isWrong} 
                     onClick={() => checkAnswer(option)}
-                    whileHover={(!answered && !optionsLocked) ? { scale: 1.02, y: -2 } : {}}
-                    whileTap={(!answered && !optionsLocked) ? { scale: 0.98 } : {}}
+                    whileHover={(!answered && !optionsLocked && !isWrong) ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={(!answered && !optionsLocked && !isWrong) ? { scale: 0.98 } : {}}
                     className={`
                       relative flex items-center justify-between p-4 rounded-xl font-bold text-left transition-all duration-300 border-2 shadow-[0_3px_0_0_transparent]
                       ${optionsLocked && !answered ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-80' : 
                         isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-emerald-500/30' : 
-                        isWrong ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-rose-500/30' : 
+                        isWrong ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-rose-500/30 cursor-not-allowed' : 
                         'bg-white border-slate-200 text-slate-600 hover:border-sky-400 hover:bg-sky-50 shadow-slate-200'}
                     `}
                   >
