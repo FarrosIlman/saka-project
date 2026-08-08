@@ -13,6 +13,7 @@ import {
 import confetti from 'canvas-confetti';
 import { playDing, playBuzzer, playFanfare } from '../utils/audio';
 import { vibrateSuccess, vibrateError, vibrateTap, vibrateHeavy } from '../utils/haptics';
+import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
 import { StreakModal } from '../components/gamification/StreakModal';
 import { Mascot } from '../components/gamification/Mascot';
 import { transcribeVoice } from '../services/api';
