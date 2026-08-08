@@ -108,6 +108,18 @@ export const userAPI = {
   completeTutorial: () => api.put('/user/tutorial-complete'),
 };
 
+// Voice API
+export const transcribeVoice = async (audioBlob) => {
+  const formData = new FormData();
+  formData.append('audio', audioBlob, 'audio.wav');
+  const response = await api.post('/voice/transcribe', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 // Gamification API
 export const gamificationAPI = {
   getBadges: () => api.get('/gamification/badges'),

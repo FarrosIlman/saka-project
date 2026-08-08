@@ -131,6 +131,7 @@ app.use('/api/gamification', apiLimiter, require('./routes/gamificationRoutes'))
 app.use('/api/comments', apiLimiter, require('./routes/commentRoutes'));
 app.use('/api/export', apiLimiter, require('./routes/exportRoutes'));
 app.use('/api/reporting', apiLimiter, require('./routes/reportingRoutes'));
+app.use('/api/voice', apiLimiter, require('./routes/voiceRoutes'));
 app.use('/api', apiLimiter, require('./routes/leaderboardRoutes'));
 
 // Health check endpoint

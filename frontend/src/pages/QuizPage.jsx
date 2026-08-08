@@ -13,10 +13,9 @@ import {
 import confetti from 'canvas-confetti';
 import { playDing, playBuzzer, playFanfare } from '../utils/audio';
 import { vibrateSuccess, vibrateError, vibrateTap, vibrateHeavy } from '../utils/haptics';
-import { BadgeUnlockModal } from '../components/gamification/BadgeUnlockModal';
 import { StreakModal } from '../components/gamification/StreakModal';
 import { Mascot } from '../components/gamification/Mascot';
-import WhisperWorker from '../workers/whisper.worker.js?worker';
+import { transcribeVoice } from '../services/api';
 import { encodeWAV } from '../utils/wavEncoder';
 import { resampleAudio } from '../utils/audioUtils';
 
@@ -70,49 +69,8 @@ export default function QuizPage() {
   const [voiceAttempts, setVoiceAttempts] = useState(0);
 
   // Whisper AI States
-  const whisperWorkerRef = React.useRef(null);
-  const modelLoadedRef = React.useRef(false);
   const processVoiceRef = React.useRef(null);
-  const [isModelLoading, setIsModelLoading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [modelProgress, setModelProgress] = useState(0);
-
-  // Initialize Worker
-  useEffect(() => {
-    whisperWorkerRef.current = new WhisperWorker();
-    
-    whisperWorkerRef.current.addEventListener('message', (event) => {
-      const { type, text, info, error } = event.data;
-      if (type === 'progress') {
-        setModelProgress(info.progress || 0);
-      } else if (type === 'loaded') {
-        modelLoadedRef.current = true;
-        setIsModelLoading(false);
-        // Worker loaded, now we can start actual recording
-        startActualRecording();
-      } else if (type === 'result') {
-        setIsTranscribing(false);
-        addDebug(`Worker Result: ${JSON.stringify(event.data)}`);
-        if (processVoiceRef.current) processVoiceRef.current(text);
-        setMascotState('idle');
-      } else if (type === 'error') {
-        addDebug(`Worker Error: ${error}`);
-        console.error("Whisper error:", error);
-        setIsModelLoading(false);
-        setIsTranscribing(false);
-        setMascotState('sad');
-      }
-    });
-
-    // Start preloading the AI model immediately in the background
-    whisperWorkerRef.current.postMessage({ type: 'load' });
-
-    return () => {
-      if (whisperWorkerRef.current) {
-        whisperWorkerRef.current.terminate();
-      }
-    }
-  }, []);
 
   useEffect(() => { fetchQuestions(); }, [levelNumber]);
 
@@ -178,13 +136,7 @@ export default function QuizPage() {
       return;
     }
     
-    // If the background download is still not finished, show the loading state
-    if (!modelLoadedRef.current) {
-      setIsModelLoading(true);
-      setMascotState('thinking');
-    } else {
-      startActualRecording();
-    }
+    startActualRecording();
   };
 
   const startActualRecording = async () => {
@@ -276,12 +228,21 @@ export default function QuizPage() {
         const wavBlob = encodeWAV(finalAudio, 16000);
         const audioUrl = URL.createObjectURL(wavBlob);
         setAudioBlobUrl(audioUrl);
-        addDebug(`WAV created. Sending to worker...`);
+        addDebug(`WAV created. Sending to Groq Server...`);
         
-        whisperWorkerRef.current.postMessage({ type: 'transcribe', audio: finalAudio });
+        const response = await transcribeVoice(wavBlob);
+        addDebug(`Groq API Result: ${JSON.stringify(response)}`);
+        
+        setIsTranscribing(false);
+        if (processVoiceRef.current) {
+          processVoiceRef.current(response.text || "");
+        }
+        setMascotState('idle');
       } catch (err) {
         addDebug(`Process Error: ${err.message}`);
+        console.error("Transcription Error:", err);
         setIsTranscribing(false);
+        setMascotState('sad');
       }
     }
   };
@@ -636,21 +597,21 @@ export default function QuizPage() {
               </div>
 
               <motion.button 
-                disabled={answered || isModelLoading || isTranscribing}
-                onClick={(!answered && !isModelLoading && !isTranscribing) ? handleMicClick : null}
-                whileHover={!answered && !isListening && !isModelLoading && !isTranscribing ? { scale: 1.1, y: -5 } : {}}
-                whileTap={!answered && !isModelLoading && !isTranscribing ? { scale: 0.9 } : {}}
+                disabled={answered || isTranscribing}
+                onClick={(!answered && !isTranscribing) ? handleMicClick : null}
+                whileHover={!answered && !isListening && !isTranscribing ? { scale: 1.1, y: -5 } : {}}
+                whileTap={!answered && !isTranscribing ? { scale: 0.9 } : {}}
                 className={`
                   relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10 bg-white
                   ${answered ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' : 
                     isListening ? 'bg-rose-500 border-rose-600 text-white shadow-lg shadow-rose-500/50' : 
-                    isModelLoading || isTranscribing ? 'bg-amber-100 border-amber-200 text-amber-500 cursor-wait' :
+                    isTranscribing ? 'bg-amber-100 border-amber-200 text-amber-500 cursor-wait' :
                     'border-sky-100 text-sky-500 shadow-xl shadow-sky-100 hover:border-sky-400 hover:text-sky-600 cursor-pointer'}
                 `}
               >
                 {isListening ? (
                   <Square size={32} fill="currentColor" />
-                ) : isModelLoading || isTranscribing ? (
+                ) : isTranscribing ? (
                   <Loader2 size={36} className="animate-spin" />
                 ) : (
                   <Mic size={36} strokeWidth={2.5} />
@@ -667,22 +628,12 @@ export default function QuizPage() {
               
               <div className="flex flex-col items-center mt-4">
                 <span className={`font-black text-sm uppercase tracking-widest transition-colors ${
-                  isListening ? 'text-rose-500' : isModelLoading || isTranscribing ? 'text-amber-500' : answered ? 'text-slate-400' : 'text-sky-500'
+                  isListening ? 'text-rose-500' : isTranscribing ? 'text-amber-500' : answered ? 'text-slate-400' : 'text-sky-500'
                 }`}>
                   {isListening ? 'Tap to Stop' : 
-                   isModelLoading ? 'Downloading AI...' : 
-                   isTranscribing ? 'Transcribing...' :
+                   isTranscribing ? 'Transcribing (Groq)...' :
                    answered ? 'Locked' : 'Tap & Speak'}
                 </span>
-                
-                {isModelLoading && modelProgress > 0 && (
-                  <div className="w-32 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
-                    <div 
-                      className="h-full bg-amber-500 transition-all duration-300"
-                      style={{ width: `${modelProgress}%` }}
-                    />
-                  </div>
-                )}
               </div>
             </div>
 
