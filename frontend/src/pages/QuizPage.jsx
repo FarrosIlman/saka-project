@@ -57,12 +57,6 @@ export default function QuizPage() {
   const mediaStreamRef = React.useRef(null);
   const rawAudioChunksRef = React.useRef([]);
   
-  // Debug State
-  const [debugLogs, setDebugLogs] = useState([]);
-  const addDebug = (msg) => {
-    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
-  };
-  
   const [hearts, setHearts] = useState(5);
   const [showGameOver, setShowGameOver] = useState(false);
   const [mascotState, setMascotState] = useState('idle');
@@ -173,9 +167,7 @@ export default function QuizPage() {
 
       setIsListening(true);
       setMascotState('idle');
-      addDebug(`Recording started. SR: ${audioContext.sampleRate}`);
     } catch (err) {
-      addDebug(`Mic Error: ${err.message}`);
       console.error('Microphone error:', err);
       error('Microphone permission denied.');
       setMascotState('sad');
@@ -184,7 +176,6 @@ export default function QuizPage() {
 
   const stopListening = async () => {
     if (scriptProcessorRef.current && audioContextRef.current) {
-      addDebug("Stopping recording...");
       setIsListening(false);
       setIsTranscribing(true);
       setMascotState('thinking');
@@ -200,7 +191,6 @@ export default function QuizPage() {
       }
       
       const chunks = rawAudioChunksRef.current;
-      addDebug(`Captured ${chunks.length} chunks`);
       const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
       const mergedAudio = new Float32Array(totalLength);
       let offset = 0;
@@ -208,18 +198,15 @@ export default function QuizPage() {
         mergedAudio.set(chunk, offset);
         offset += chunk.length;
       }
-      addDebug(`Merged length: ${mergedAudio.length}`);
       
       try {
         const hardwareSampleRate = audioContextRef.current.sampleRate;
         let finalAudio = await resampleAudio(mergedAudio, hardwareSampleRate);
-        addDebug(`Resampled length: ${finalAudio.length}`);
         
         let maxVal = 0;
         for (let i = 0; i < finalAudio.length; i++) {
           if (Math.abs(finalAudio[i]) > maxVal) maxVal = Math.abs(finalAudio[i]);
         }
-        addDebug(`Max Audio Value: ${maxVal}`);
         
         if (maxVal > 0) {
           for (let i = 0; i < finalAudio.length; i++) {
@@ -230,10 +217,8 @@ export default function QuizPage() {
         const wavBlob = encodeWAV(finalAudio, 16000);
         const audioUrl = URL.createObjectURL(wavBlob);
         setAudioBlobUrl(audioUrl);
-        addDebug(`WAV created. Sending to Groq Server...`);
         
         const response = await transcribeVoice(wavBlob);
-        addDebug(`Groq API Result: ${JSON.stringify(response)}`);
         
         setIsTranscribing(false);
         if (processVoiceRef.current) {
@@ -241,7 +226,6 @@ export default function QuizPage() {
         }
         setMascotState('idle');
       } catch (err) {
-        addDebug(`Process Error: ${err.message}`);
         console.error("Transcription Error:", err);
         setIsTranscribing(false);
         setMascotState('sad');
@@ -712,19 +696,6 @@ export default function QuizPage() {
       <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />
       {streakData && (
         <StreakModal streakData={streakData} onClose={() => setStreakData(null)} />
-      )}
-      
-      {/* Debug Logs Panel */}
-      {debugLogs.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-slate-900/90 text-green-400 font-mono text-[10px] p-3 max-h-40 overflow-y-auto z-50">
-          <div className="flex justify-between items-center mb-2 border-b border-green-800 pb-1">
-            <span className="font-bold">DEBUG LOGS</span>
-            <button onClick={() => setDebugLogs([])} className="text-rose-400">Clear</button>
-          </div>
-          {debugLogs.map((log, i) => (
-            <div key={i}>{log}</div>
-          ))}
-        </div>
       )}
     </div>
   );
