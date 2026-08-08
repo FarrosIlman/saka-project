@@ -106,6 +106,7 @@ export const userAPI = {
   updateProfile: (data) => api.put('/user/profile', data),
   updatePreferences: (data) => api.put('/user/preferences', data),
   completeTutorial: () => api.put('/user/tutorial-complete'),
+  getUserCount: () => api.get('/user/count'),
 };
 
 // Voice API

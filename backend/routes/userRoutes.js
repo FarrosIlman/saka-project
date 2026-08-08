@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getProfile, updatePassword, updateProfile, updatePreferences, updateStatus, getAllUsers, completeTutorial } = require('../controllers/userController');
+const { getProfile, updatePassword, updateProfile, updatePreferences, updateStatus, getAllUsers, completeTutorial, getUserCount } = require('../controllers/userController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
+
+// Public route
+router.get('/count', getUserCount);
 
 // Protected routes - require authentication
 router.get('/profile', protect, getProfile);

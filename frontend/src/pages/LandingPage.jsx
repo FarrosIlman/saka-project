@@ -11,6 +11,17 @@ import {
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
+  const [userCount, setUserCount] = React.useState(0);
+
+  React.useEffect(() => {
+    import('../services/api').then(({ userAPI }) => {
+      userAPI.getUserCount().then(res => {
+        if (res.data && res.data.success) {
+          setUserCount(res.data.count);
+        }
+      }).catch(err => console.error(err));
+    });
+  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -75,6 +86,20 @@ export default function LandingPage() {
         >
           Smart Application for Kid's Speaking Activity hadir dengan teknologi interaktif untuk membuat belajar bahasa Inggris menjadi efektif dan menyenangkan.
         </motion.p>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="flex items-center justify-center gap-3 mb-8 text-slate-600 font-medium"
+        >
+          <div className="flex -space-x-3">
+            {[1, 2, 3, 4].map(i => (
+              <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=user${i}&backgroundColor=e2e8f0`} className="w-10 h-10 rounded-full border-[3px] border-white shadow-sm" alt="avatar" />
+            ))}
+          </div>
+          <span className="text-base">Bergabung bersama <strong className="text-sky-600 text-lg">{userCount > 0 ? userCount : 'banyak'}</strong> pelajar lainnya!</span>
+        </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

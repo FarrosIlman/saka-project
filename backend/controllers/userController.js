@@ -178,6 +178,16 @@ const updateStatus = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get total user count
+// @route   GET /api/user/count
+// @access  Public
+const getUserCount = asyncHandler(async (req, res) => {
+  const count = await User.countDocuments({ role: 'student' });
+  // Add some base padding if client wants to look more popular, or just real count
+  // Let's just return real count for now
+  res.json({ success: true, count });
+});
+
 // @desc    Get all users (admin only)
 // @route   GET /api/users
 // @access  Private/Admin
@@ -238,4 +248,5 @@ module.exports = {
   updateStatus,
   getAllUsers,
   completeTutorial,
+  getUserCount
 };
