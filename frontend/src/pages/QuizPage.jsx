@@ -137,8 +137,6 @@ export default function QuizPage() {
 
   const startActualRecording = async () => {
     setAudioBlobUrl(null);
-    setDebugLogs([]); // Clear previous logs
-    addDebug("Starting recording...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
