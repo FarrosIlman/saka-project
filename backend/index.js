@@ -57,6 +57,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'https://saka-frontend.vercel.app', // GANTI dengan URL Vercel Frontend kamu
+      'https://saka.malikadigital.my.id', // Domain frontend kedua
       /\.vercel\.app$/                      // Izinkan semua subdomain vercel.app
     ];
 
