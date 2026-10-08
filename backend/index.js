@@ -91,7 +91,7 @@ app.use(express.urlencoded({ extended: true }));
 // Strict rate limiter untuk auth routes (cegah brute force)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 5, // Maksimal 5 request per IP per windowMs
+  max: 200, // Ditingkatkan dari 5 ke 200 agar anak-anak satu sekolah/kelas (IP sama) bisa login bareng
   message: 'Terlalu banyak percobaan login/register. Coba lagi dalam 15 menit.',
   standardHeaders: true,
   legacyHeaders: false,
