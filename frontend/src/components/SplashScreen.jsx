@@ -36,12 +36,12 @@ export default function SplashScreen({ onFinish }) {
             className="relative"
           >
             {/* The Logo */}
-            <img 
-              src="/saka.png" 
-              alt="SAKA Logo" 
+            <img
+              src="/saka.png"
+              alt="SAKA Logo"
               className="w-48 h-48 object-contain drop-shadow-xl"
             />
-            
+
             {/* Animated Ring / Aura */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0.5 }}
@@ -54,7 +54,7 @@ export default function SplashScreen({ onFinish }) {
               className="absolute inset-0 rounded-full border-4 border-emerald-400"
             />
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,11 +62,11 @@ export default function SplashScreen({ onFinish }) {
             className="mt-8 text-center"
           >
             <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">SAKA</h1>
-            <p className="text-emerald-600 font-semibold mt-1">Smart Application for Kid's Speaking Activity</p>
+            <p className="text-emerald-600 font-semibold mt-1">Smart Application for Kids' Activities</p>
           </motion.div>
 
           {/* Loading Dots */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}

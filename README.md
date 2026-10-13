@@ -1,4 +1,4 @@
-# 🎓 SAKA (Smart Application for Kid's Speaking Activity)
+# 🎓 SAKA (Smart Application for Kids' Activities)
 
 ![App Preview](https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=1200&h=300&fit=crop&auto=format)
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { 
-  Rocket, BookOpen, Trophy, Crown, 
+import {
+  Rocket, BookOpen, Trophy, Crown,
   Gamepad2, LayoutDashboard, Flame,
   ChevronRight, Heart, Sparkles, Coins
 } from 'lucide-react';
@@ -33,7 +33,7 @@ export default function LandingPage() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.1 }
     }
@@ -41,7 +41,7 @@ export default function LandingPage() {
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
+    visible: {
       y: 0, opacity: 1,
       transition: { duration: 0.5 }
     }
@@ -49,7 +49,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-slate-50 overflow-hidden font-sans">
-      
+
       {/* Subtle Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-grid-pattern opacity-30"></div>
@@ -59,7 +59,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center lg:pt-32">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -69,7 +69,7 @@ export default function LandingPage() {
           <span className="uppercase tracking-wide">Platform Belajar Masa Depan</span>
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -78,16 +78,16 @@ export default function LandingPage() {
           Fasih <span className="text-sky-600">Bahasa Inggris</span> <br className="hidden md:block" /> Lewat SAKA
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 max-w-2xl mx-auto text-lg sm:text-xl text-slate-500 mb-10 font-medium leading-relaxed"
         >
-          Smart Application for Kid's Speaking Activity hadir dengan teknologi interaktif untuk membuat belajar bahasa Inggris menjadi efektif dan menyenangkan.
+          Smart Application for Kids' Activities hadir dengan teknologi interaktif untuk membuat belajar bahasa Inggris menjadi efektif dan menyenangkan.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
@@ -101,22 +101,22 @@ export default function LandingPage() {
           <span className="text-base">Bergabung bersama <strong className="text-sky-600 text-lg">{userCount > 0 ? userCount : 'banyak'}</strong> pelajar lainnya!</span>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <button 
-            onClick={handleGetStarted} 
+          <button
+            onClick={handleGetStarted}
             className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-sky-600 rounded-full hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-600/20 transition-all duration-300 w-full sm:w-auto"
           >
             {user ? 'Lanjut Misi Belajar' : 'Mulai Petualangan'}
             <Rocket size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
-          
+
           {!user && (
-            <button 
+            <button
               onClick={() => navigate('/login')}
               className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 w-full sm:w-auto"
             >
@@ -128,7 +128,7 @@ export default function LandingPage() {
       </div>
 
       {/* Stats Bar */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -157,48 +157,48 @@ export default function LandingPage() {
           <p className="text-base font-medium text-slate-500 max-w-2xl mx-auto">Dirancang menggunakan standar UI/UX modern untuk memberikan pengalaman belajar terbaik yang elegan dan fokus.</p>
         </div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          <FeatureCard 
-            icon={<BookOpen size={28}/>} 
-            title="Materi Kuis Berjenjang" 
-            desc="Kurikulum bertingkat dari level dasar hingga mahir yang membantu siswa menguasai Bahasa Inggris secara bertahap." 
+          <FeatureCard
+            icon={<BookOpen size={28} />}
+            title="Materi Kuis Berjenjang"
+            desc="Kurikulum bertingkat dari level dasar hingga mahir yang membantu siswa menguasai Bahasa Inggris secara bertahap."
           />
-          <FeatureCard 
-            icon={<Flame size={28}/>} 
-            title="Daily Streak & Rewards" 
-            desc="Login dan selesaikan misi setiap hari untuk mempertahankan rentetan api (streak) dan dapatkan bonus menarik." 
+          <FeatureCard
+            icon={<Flame size={28} />}
+            title="Daily Streak & Rewards"
+            desc="Login dan selesaikan misi setiap hari untuk mempertahankan rentetan api (streak) dan dapatkan bonus menarik."
           />
-          <FeatureCard 
-            icon={<Coins size={28}/>} 
-            title="Sistem Ekonomi Poin" 
-            desc="Kumpulkan Poin dan XP dari setiap jawaban benar untuk memanjat papan peringkat." 
+          <FeatureCard
+            icon={<Coins size={28} />}
+            title="Sistem Ekonomi Poin"
+            desc="Kumpulkan Poin dan XP dari setiap jawaban benar untuk memanjat papan peringkat."
           />
-          <FeatureCard 
-            icon={<Heart size={28}/>} 
-            title="Sistem Nyawa Dinamis" 
-            desc="Bermain butuh nyawa! Jika kehabisan, kamu bisa memulihkannya dengan menonton iklan atau berlatih soal." 
+          <FeatureCard
+            icon={<Heart size={28} />}
+            title="Sistem Nyawa Dinamis"
+            desc="Bermain butuh nyawa! Jika kehabisan, kamu bisa memulihkannya dengan menonton iklan atau berlatih soal."
           />
-          <FeatureCard 
-            icon={<Crown size={28}/>} 
-            title="Papan Peringkat Global" 
-            desc="Berkompetisi dengan teman-teman dari seluruh sekolah untuk meraih posisi puncak di Leaderboard." 
+          <FeatureCard
+            icon={<Crown size={28} />}
+            title="Papan Peringkat Global"
+            desc="Berkompetisi dengan teman-teman dari seluruh sekolah untuk meraih posisi puncak di Leaderboard."
           />
-          <FeatureCard 
-            icon={<LayoutDashboard size={28}/>} 
-            title="Dashboard Admin" 
-            desc="Panel kontrol canggih bagi guru/admin untuk manajemen kuis, level, dan melihat aktivitas siswa." 
+          <FeatureCard
+            icon={<LayoutDashboard size={28} />}
+            title="Dashboard Admin"
+            desc="Panel kontrol canggih bagi guru/admin untuk manajemen kuis, level, dan melihat aktivitas siswa."
           />
         </motion.div>
       </div>
 
       {/* Footer CTA */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -210,7 +210,7 @@ export default function LandingPage() {
           <div className="relative z-10">
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight">Siap Memulai Petualangan?</h2>
             <p className="text-slate-400 text-base mb-10 max-w-xl mx-auto font-medium">Bergabung sekarang dan jadikan proses belajar bahasa Inggris pengalaman yang tak terlupakan dan efektif.</p>
-            <button 
+            <button
               onClick={handleGetStarted}
               className="inline-flex items-center gap-2 px-8 py-4 bg-sky-500 text-white text-base font-bold rounded-full hover:bg-sky-400 hover:-translate-y-1 transition-all duration-300"
             >
@@ -224,7 +224,7 @@ export default function LandingPage() {
 }
 
 const FeatureCard = ({ icon, title, desc }) => (
-  <motion.div 
+  <motion.div
     variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
     className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:border-sky-100 transition-all duration-300"
   >
