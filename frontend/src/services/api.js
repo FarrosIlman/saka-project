@@ -109,6 +109,19 @@ export const userAPI = {
   getUserCount: () => api.get('/user/count'),
 };
 
+// Comment / Discussion Moderation API
+export const commentAPI = {
+  getLevelComments: (levelId, params) => api.get(`/comments/level/${levelId}`, { params }),
+  createComment: (data) => api.post('/comments', data),
+  addReply: (commentId, data) => api.post(`/comments/${commentId}/reply`, data),
+  markHelpful: (commentId) => api.put(`/comments/${commentId}/helpful`),
+  deleteComment: (commentId) => api.delete(`/comments/${commentId}`),
+  deleteReply: (commentId, replyId) => api.delete(`/comments/${commentId}/reply/${replyId}`),
+  // Admin Moderation
+  getAdminComments: (params) => api.get('/comments/admin/all', { params }),
+  bulkDeleteComments: (commentIds) => api.post('/comments/admin/bulk-delete', { commentIds }),
+};
+
 // Voice API
 export const transcribeVoice = async (audioBlob) => {
   const formData = new FormData();

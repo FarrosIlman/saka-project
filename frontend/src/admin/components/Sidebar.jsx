@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Users,
   BookOpen,
+  MessageSquare,
   LogOut,
   GraduationCap,
   ChevronRight,
@@ -117,6 +118,18 @@ export default function Sidebar({ isOpen, closeSidebar }) {
                 <div className="flex items-center gap-3">
                   <BookOpen size={20} className={iconClass({ isActive })} />
                   <span>Content Levels</span>
+                </div>
+                <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
+              </>
+            )}
+          </NavLink>
+
+          <NavLink to="/admin/comments" className={navLinkClass} onClick={handleLinkClick}>
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <MessageSquare size={20} className={iconClass({ isActive })} />
+                  <span>Diskusi & Komentar</span>
                 </div>
                 <ChevronRight size={16} className={`transition-transform duration-300 ${isActive ? "opacity-100 translate-x-1 text-sky-400" : "opacity-0 -translate-x-2"}`} />
               </>

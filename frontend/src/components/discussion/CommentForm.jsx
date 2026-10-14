@@ -34,7 +34,7 @@ const CommentForm = ({ levelId, onCommentAdded, onCancel }) => {
       }
     } catch (error) {
       console.error('Failed to post comment:', error);
-      toast.error('Failed to post comment');
+      toast.error(error.response?.data?.message || 'Failed to post comment');
     } finally {
       setLoading(false);
     }

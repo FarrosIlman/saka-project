@@ -27,6 +27,7 @@ const UserEditPage = React.lazy(() => import('./admin/pages/UserEditPage'));
 const StudentScoresPage = React.lazy(() => import('./admin/pages/StudentScoresPage'));
 const LevelManagementPage = React.lazy(() => import('./admin/pages/LevelManagementPage'));
 const LevelEditPage = React.lazy(() => import('./admin/pages/LevelEditPage'));
+const CommentModerationPage = React.lazy(() => import('./admin/pages/CommentModerationPage'));
 
 import SplashScreen from './components/SplashScreen';
 
@@ -111,6 +112,7 @@ function App() {
               <Route path="content/levels/new" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
               <Route path="content/levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
               <Route path="levels/:levelId/edit" element={<Suspense fallback={<PageLoader />}><LevelEditPage /></Suspense>} />
+              <Route path="comments" element={<Suspense fallback={<PageLoader />}><CommentModerationPage /></Suspense>} />
             </Route>
 
             {/* Fallback */}
